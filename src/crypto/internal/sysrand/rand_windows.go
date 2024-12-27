@@ -7,5 +7,8 @@ package sysrand
 import "internal/syscall/windows"
 
 func read(b []byte) error {
-	return windows.ProcessPrng(b)
+	// RtlGenRandom only returns 1<<32-1 bytes at a time. We only read at
+	// most 1<<31-1 bytes at a time so that  this works the same on 32-bit
+	// and 64-bit systems.
+	return batched(windows.RtlGenRandom, 1<<31-1)(b)
 }
