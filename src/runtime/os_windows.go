@@ -39,8 +39,8 @@ const (
 //go:cgo_import_dynamic runtime._GetSystemInfo GetSystemInfo%1 "kernel32.dll"
 //go:cgo_import_dynamic runtime._GetThreadContext GetThreadContext%2 "kernel32.dll"
 //go:cgo_import_dynamic runtime._SetThreadContext SetThreadContext%2 "kernel32.dll"
-//go:cgo_import_dynamic runtime._LoadLibraryExW LoadLibraryExW%3 "kernel32.dll"
 //go:cgo_import_dynamic runtime._LoadLibraryW LoadLibraryW%1 "kernel32.dll"
+//go:cgo_import_dynamic runtime._LoadLibraryA LoadLibraryA%1 "kernel32.dll"
 //go:cgo_import_dynamic runtime._PostQueuedCompletionStatus PostQueuedCompletionStatus%4 "kernel32.dll"
 //go:cgo_import_dynamic runtime._QueryPerformanceCounter QueryPerformanceCounter%1 "kernel32.dll"
 //go:cgo_import_dynamic runtime._QueryPerformanceFrequency QueryPerformanceFrequency%1 "kernel32.dll"
@@ -74,7 +74,6 @@ var (
 	// Following syscalls are available on every Windows PC.
 	// All these variables are set by the Windows executable
 	// loader before the Go program starts.
-	_AddVectoredContinueHandler,
 	_AddVectoredExceptionHandler,
 	_CloseHandle,
 	_CreateEventA,
@@ -97,8 +96,8 @@ var (
 	_GetSystemInfo,
 	_GetThreadContext,
 	_SetThreadContext,
-	_LoadLibraryExW,
 	_LoadLibraryW,
+	_LoadLibraryA,
 	_PostQueuedCompletionStatus,
 	_QueryPerformanceCounter,
 	_QueryPerformanceFrequency,
@@ -127,6 +126,14 @@ var (
 	_WriteFile,
 	_ stdFunction
 
+	// Following syscalls are only available on some Windows PCs.
+	// We will load syscalls, if available, before using them.
+	_AddDllDirectory,
+	_AddVectoredContinueHandler,
+	_LoadLibraryExA,
+	_LoadLibraryExW,
+	_ stdFunction
+
 	// Use RtlGenRandom to generate cryptographically random data.
 	// This approach has been recommended by Microsoft (see issue
 	// 15589 for details).
@@ -150,13 +157,6 @@ var (
 	_timeBeginPeriod,
 	_timeEndPeriod,
 	_ stdFunction
-)
-
-var (
-	advapi32dll = [...]uint16{'a', 'd', 'v', 'a', 'p', 'i', '3', '2', '.', 'd', 'l', 'l', 0}
-	ntdlldll    = [...]uint16{'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l', 0}
-	powrprofdll = [...]uint16{'p', 'o', 'w', 'r', 'p', 'r', 'o', 'f', '.', 'd', 'l', 'l', 0}
-	winmmdll    = [...]uint16{'w', 'i', 'n', 'm', 'm', '.', 'd', 'l', 'l', 0}
 )
 
 // Function to be called by windows CreateThread
@@ -251,8 +251,18 @@ func windows_GetSystemDirectory() string {
 	return unsafe.String(&sysDirectory[0], sysDirectoryLen)
 }
 
-func windowsLoadSystemLib(name []uint16) uintptr {
-	return stdcall3(_LoadLibraryExW, uintptr(unsafe.Pointer(&name[0])), 0, _LOAD_LIBRARY_SEARCH_SYSTEM32)
+//go:linkname syscall_getSystemDirectory syscall.getSystemDirectory
+func syscall_getSystemDirectory() string {
+	return unsafe.String(&sysDirectory[0], sysDirectoryLen)
+}
+
+func windowsLoadSystemLib(name []byte) uintptr {
+	if useLoadLibraryEx {
+		return stdcall3(_LoadLibraryExA, uintptr(unsafe.Pointer(&name[0])), 0, _LOAD_LIBRARY_SEARCH_SYSTEM32)
+	} else {
+		absName := append(sysDirectory[:sysDirectoryLen], name...)
+		return stdcall1(_LoadLibraryA, uintptr(unsafe.Pointer(&absName[0])))
+	}
 }
 
 //go:linkname windows_QueryPerformanceCounter internal/syscall/windows.QueryPerformanceCounter
@@ -270,13 +280,28 @@ func windows_QueryPerformanceFrequency() int64 {
 }
 
 func loadOptionalSyscalls() {
-	a32 := windowsLoadSystemLib(advapi32dll[:])
+	var kernel32dll = []byte("kernel32.dll\000")
+	k32 := stdcall1(_LoadLibraryA, uintptr(unsafe.Pointer(&kernel32dll[0])))
+	if k32 == 0 {
+		throw("kernel32.dll not found")
+	}
+	_AddDllDirectory = windowsFindfunc(k32, []byte("AddDllDirectory\000"))
+	_AddVectoredContinueHandler = windowsFindfunc(k32, []byte("AddVectoredContinueHandler\000"))
+	_LoadLibraryExA = windowsFindfunc(k32, []byte("LoadLibraryExA\000"))
+	_LoadLibraryExW = windowsFindfunc(k32, []byte("LoadLibraryExW\000"))
+	useLoadLibraryEx = (_LoadLibraryExW != nil && _LoadLibraryExA != nil && _AddDllDirectory != nil)
+
+	initSysDirectory()
+
+	var advapi32dll = []byte("advapi32.dll\000")
+	a32 := windowsLoadSystemLib(advapi32dll)
 	if a32 == 0 {
 		throw("advapi32.dll not found")
 	}
 	_RtlGenRandom = windowsFindfunc(a32, []byte("SystemFunction036\000"))
 
-	n32 := windowsLoadSystemLib(ntdlldll[:])
+	var ntdll = []byte("ntdll.dll\000")
+	n32 := windowsLoadSystemLib(ntdll)
 	if n32 == 0 {
 		throw("ntdll.dll not found")
 	}
@@ -305,7 +330,7 @@ func monitorSuspendResume() {
 		context  uintptr
 	}
 
-	powrprof := windowsLoadSystemLib(powrprofdll[:])
+	powrprof := windowsLoadSystemLib([]byte("powrprof.dll\000"))
 	if powrprof == 0 {
 		return // Running on Windows 7, where we don't need it anyway.
 	}
@@ -363,6 +388,22 @@ const (
 
 // in sys_windows_386.s and sys_windows_amd64.s:
 func getlasterror() uint32
+
+// When loading DLLs, we prefer to use LoadLibraryEx with
+// LOAD_LIBRARY_SEARCH_* flags, if available. LoadLibraryEx is not
+// available on old Windows, though, and the LOAD_LIBRARY_SEARCH_*
+// flags are not available on some versions of Windows without a
+// security patch.
+//
+// https://msdn.microsoft.com/en-us/library/ms684179(v=vs.85).aspx says:
+// "Windows 7, Windows Server 2008 R2, Windows Vista, and Windows
+// Server 2008: The LOAD_LIBRARY_SEARCH_* flags are available on
+// systems that have KB2533623 installed. To determine whether the
+// flags are available, use GetProcAddress to get the address of the
+// AddDllDirectory, RemoveDllDirectory, or SetDefaultDllDirectories
+// function. If GetProcAddress succeeds, the LOAD_LIBRARY_SEARCH_*
+// flags can be used with LoadLibraryEx."
+var useLoadLibraryEx bool
 
 var timeBeginPeriodRetValue uint32
 
@@ -437,7 +478,8 @@ func initHighResTimer() {
 		// Only load winmm.dll if we need it.
 		// This avoids a dependency on winmm.dll for Go programs
 		// that run on new Windows versions.
-		m32 := windowsLoadSystemLib(winmmdll[:])
+		var winmmdll = []byte("winmm.dll\000")
+		m32 := windowsLoadSystemLib(winmmdll)
 		if m32 == 0 {
 			print("runtime: LoadLibraryExW failed; errno=", getlasterror(), "\n")
 			throw("winmm.dll not found")
@@ -512,7 +554,6 @@ func osinit() {
 	initHighResTimer()
 	timeBeginPeriodRetValue = osRelax(false)
 
-	initSysDirectory()
 	initLongPathSupport()
 	initOsVersionInfo()
 
