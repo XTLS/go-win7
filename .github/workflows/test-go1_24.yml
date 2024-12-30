@@ -61,9 +61,11 @@ jobs:
           curl https://github.com/XTLS/go-win7/commit/36d7775e030192d3bf2dc111d1f6cfa89eae5f0c.diff | patch --verbose -p 1
 
       - name: Build patched Go
+        shell: bash
         run: |
           cd ./src
-          . ./all.bash
+          . ./make.bash "$@" --no-banner
+          "$GOTOOLDIR/dist" banner
           cd ..
 
       - name: create ZIP archive
