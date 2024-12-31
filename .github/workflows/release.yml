@@ -64,18 +64,18 @@ jobs:
           "$GOTOOLDIR/dist" banner
           cd ..
 
-      - name: create ZIP archive
-        if: github.event_name == 'release'
-        shell: bash
-        run: |
-          zip -9vr ./go-for-win7-${{ env.ASSET_NAME }}.zip . -x "./.git/" "./.github/"
-
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: go-for-win7-${{ env.ASSET_NAME }}
           path: |
             ./*
+
+      - name: create ZIP archive
+        if: github.event_name == 'release'
+        shell: bash
+        run: |
+          zip -9vr ./go-for-win7-${{ env.ASSET_NAME }}.zip . -x "./.git/" "./.github/"
 
       - name: Compute hashes for file
         if: github.event_name == 'release'
