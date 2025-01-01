@@ -52,7 +52,7 @@ jobs:
           repository: 'golang/go'
           ref: ${{ matrix.buildtarget }}
 
-      # Patches for Go 1.24.x before more minor changes introduces.
+      # Patches for Go 1.22.x before more minor changes introduces.
       - name: Apply patch
         run: |
           curl https://github.com/XTLS/go-win7/commit/47686a8247e6671fd1b5b4cdae4a922a3e2f1f3b.diff | patch --verbose -p 1
