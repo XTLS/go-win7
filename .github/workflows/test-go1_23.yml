@@ -20,7 +20,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
       contents: write
     strategy:
@@ -61,12 +61,10 @@ jobs:
           curl https://github.com/XTLS/go-win7/commit/ac17c301268dd7835236e61c9bfefdf2b8e633d5.diff | patch --verbose -p 1
 
       - name: Build patched Go
-        shell: bash
         run: |
-          cd ./src
-          . ./make.bash "$@" --no-banner
-          "$GOTOOLDIR/dist" banner
-          cd ..
+        cd ./src
+        ./all.bat
+        cd ..
 
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v4
