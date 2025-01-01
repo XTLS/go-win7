@@ -36,9 +36,9 @@ jobs:
     steps:
       - name: Show workflow information
         run: |
-          _NAME = "$GOOS-$GOARCH"
+          _NAME="$GOOS-$GOARCH"
           echo "GOOS: $GOOS, GOARCH: $GOARCH, APPLY-BRANCH: ${{ matrix.buildtarget }}"
-          echo "ASSET_NAME = $_NAME" >> $GITHUB_ENV
+          echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
 
       - name: Set-up Go
         uses: actions/setup-go@v5
