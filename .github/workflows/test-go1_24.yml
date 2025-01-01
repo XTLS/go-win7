@@ -36,9 +36,9 @@ jobs:
     steps:
       - name: Show workflow information
         run: |
-          _NAME="$GOOS-$GOARCH"
+          $_NAME = "$GOOS-$GOARCH"
           echo "GOOS: $GOOS, GOARCH: $GOARCH, APPLY-BRANCH: ${{ matrix.buildtarget }}"
-          echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
+          echo "$ASSET_NAME = $_NAME" >> $GITHUB_ENV
 
       - name: Set-up Go
         uses: actions/setup-go@v5
@@ -63,9 +63,9 @@ jobs:
 
       - name: Build patched Go
         run: |
-        cd ./src
-        ./all.bat
-        cd ..
+          cd ./src
+          ./all.bat
+          cd ..
 
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v4
