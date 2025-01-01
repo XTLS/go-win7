@@ -20,7 +20,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     strategy:
@@ -36,9 +36,9 @@ jobs:
     steps:
       - name: Show workflow information
         run: |
-          $_NAME = "$GOOS-$GOARCH"
+          _NAME = "$GOOS-$GOARCH"
           echo "GOOS: $GOOS, GOARCH: $GOARCH, APPLY-BRANCH: ${{ matrix.buildtarget }}"
-          echo "$ASSET_NAME = $_NAME" >> $GITHUB_ENV
+          echo "ASSET_NAME = $_NAME" >> $GITHUB_ENV
 
       - name: Set-up Go
         uses: actions/setup-go@v5
@@ -62,9 +62,11 @@ jobs:
           curl https://github.com/XTLS/go-win7/commit/a3e4d4735a5d89f60b907308b556c5a53614914d.diff | patch --verbose -p 1
 
       - name: Build patched Go
+        shell: bash
         run: |
           cd ./src
-          ./all.bat
+          . ./make.bash "$@" --no-banner
+          "$GOTOOLDIR/dist" banner
           cd ..
 
       - name: Upload package to Artifacts
