@@ -16,6 +16,14 @@ Currently found these changes in Go SDK will stop running Windows 7:
 - `693def151adff1af707d82d28f55dba81ceb08e1` (`crypto/rand,runtime: switch RtlGenRandom for ProcessPrng`)
 - `534d6a1a9c81b25bdad1052e736b2f072caa3903` (`crypto/rand: prevent Read argument from escaping to heap`) (breaking previous patch on `crypto/rand,runtime: switch RtlGenRandom for ProcessPrng`)
 
+### Testing environment
+
+All running tests are under manual operation due to there are no runners based on Windows 7 and Windows 8 in Github Actions.
+
+Testing environment:
+- Windows 7 SP1 (with no other update installed)
+- Windows 8.1 Update 3 (with no other update installed)
+
 ### Go 1.21
 
 - Windows 8.1 Update 3 / Windows Server 2012 R2: Can run official distributed Go SDK and binaries built from official SDK.

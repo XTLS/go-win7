@@ -14,7 +14,15 @@
 - `7c1157f9544922e96945196b47b95664b1e39108` (`net: remove sysSocket fallback for Windows 7`)
 - `48042aa09c2f878c4faa576948b07fe625c4707a` (`syscall: remove Windows 7 console handle workaround`)
 - `693def151adff1af707d82d28f55dba81ceb08e1` (`crypto/rand,runtime: switch RtlGenRandom for ProcessPrng`)
-- `534d6a1a9c81b25bdad1052e736b2f072caa3903` (`crypto/rand: prevent Read argument from escaping to heap`) （导致应对 `crypto/rand,runtime: switch RtlGenRandom for ProcessPrng` 的补丁失效）
+- `534d6a1a9c81b25bdad1052e736b2f072caa3903` (`crypto/rand: prevent Read argument from escaping to heap`) （导致应对 `crypto/rand,runtime: switch RtlGenRandom for ProcessPrng` 的补丁故障）
+
+### 测试环境
+
+由于 Github Actions 目前没有 Windows 7 及 Windows 8 的 runner，因此所有可运行性测试均使用人工测试。
+
+测试环境使用：
+- Windows 7 SP1 （未进行更新）
+- Windows 8.1 Update 3（未进行更新）
 
 ### Go 1.21
 
