@@ -10,11 +10,11 @@ If you need other pre-built SDK binaries that does not found in Release, you may
 
 Currently found these changes in Go SDK will stop running Windows 7:
 
-- a17d959debdb04cd550016a3501dd09d50cd62e7 (`runtime: always use LoadLibraryEx to load system libraries`) (affecting older builds)
-- 7c1157f9544922e96945196b47b95664b1e39108 (`net: remove sysSocket fallback for Windows 7`)
-- 48042aa09c2f878c4faa576948b07fe625c4707a (`syscall: remove Windows 7 console handle workaround`)
-- 693def151adff1af707d82d28f55dba81ceb08e1 (`crypto/rand,runtime: switch RtlGenRandom for ProcessPrng`)
-- 534d6a1a9c81b25bdad1052e736b2f072caa3903 (`crypto/rand: prevent Read argument from escaping to heap`) (breaking previous patch on `crypto/rand,runtime: switch RtlGenRandom for ProcessPrng`)
+- `a17d959debdb04cd550016a3501dd09d50cd62e7` (`runtime: always use LoadLibraryEx to load system libraries`) (affecting older builds)
+- `7c1157f9544922e96945196b47b95664b1e39108` (`net: remove sysSocket fallback for Windows 7`)
+- `48042aa09c2f878c4faa576948b07fe625c4707a` (`syscall: remove Windows 7 console handle workaround`)
+- `693def151adff1af707d82d28f55dba81ceb08e1` (`crypto/rand,runtime: switch RtlGenRandom for ProcessPrng`)
+- `534d6a1a9c81b25bdad1052e736b2f072caa3903` (`crypto/rand: prevent Read argument from escaping to heap`) (breaking previous patch on `crypto/rand,runtime: switch RtlGenRandom for ProcessPrng`)
 
 ### Go 1.21
 

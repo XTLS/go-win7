@@ -10,11 +10,11 @@
 
 目前已知 Go SDK 中这些更改会导致工具链自身及构建后的二进制在 Windows 7 中无法正常运行：
 
-- a17d959debdb04cd550016a3501dd09d50cd62e7 (`runtime: always use LoadLibraryEx to load system libraries`) （影响旧版未更新 Windows 7）
-- 7c1157f9544922e96945196b47b95664b1e39108 (`net: remove sysSocket fallback for Windows 7`)
-- 48042aa09c2f878c4faa576948b07fe625c4707a (`syscall: remove Windows 7 console handle workaround`)
-- 693def151adff1af707d82d28f55dba81ceb08e1 (`crypto/rand,runtime: switch RtlGenRandom for ProcessPrng`)
-- 534d6a1a9c81b25bdad1052e736b2f072caa3903 (`crypto/rand: prevent Read argument from escaping to heap`) （导致应对 `crypto/rand,runtime: switch RtlGenRandom for ProcessPrng` 的补丁失效）
+- `a17d959debdb04cd550016a3501dd09d50cd62e7` (`runtime: always use LoadLibraryEx to load system libraries`) （影响旧版未更新 Windows 7）
+- `7c1157f9544922e96945196b47b95664b1e39108` (`net: remove sysSocket fallback for Windows 7`)
+- `48042aa09c2f878c4faa576948b07fe625c4707a` (`syscall: remove Windows 7 console handle workaround`)
+- `693def151adff1af707d82d28f55dba81ceb08e1` (`crypto/rand,runtime: switch RtlGenRandom for ProcessPrng`)
+- `534d6a1a9c81b25bdad1052e736b2f072caa3903` (`crypto/rand: prevent Read argument from escaping to heap`) （导致应对 `crypto/rand,runtime: switch RtlGenRandom for ProcessPrng` 的补丁失效）
 
 ### Go 1.21
 
