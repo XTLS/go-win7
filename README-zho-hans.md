@@ -1,16 +1,16 @@
-# 适用于 Windows 7 的带补丁 Go 工具链
+# 适用于 Windows 7 的带补丁 Go SDK
 
-该包含补丁的 Go 工具链可运行于 Windows 7 中，仅回滚了 [Go](https://github.com/golang/go) 中使其无法在 Windows 7 中的部分。
+该包含补丁的 Go SDK 可运行于 Windows 7，仅回滚了 [Go](https://github.com/golang/go) 中使其无法在 Windows 7 中的部分。
 
-该工具链可用于构建需要在 Windows 7 中运行的 Go 二进制。官方新 SDK 构建的二进制无法在 Windows 7 中正常运行。可自由取用该带补丁的 SDK 来构建对应的二进制。
+该 SDK 可用于构建需要在 Windows 7 中运行的 Go 二进制。官方新 SDK 构建的二进制无法在 Windows 7 中正常运行。可自由取用该带补丁的 SDK 来构建对应的二进制。
 
-如果需要不在 Release 中没有的预先构建的 SDK，可分叉后自行构建。
+如果需要在 Release 中没有预先构建的 SDK，可分叉后自行构建。
 
 ## 状态表
 
-目前已知 Go SDK 中这些更改会导致工具链自身及构建后的二进制在 Windows 7 中无法正常运行：
+目前已知 Go SDK 中这些更改会导致 SDK 自身及构建后的二进制在 Windows 7 中无法正常运行：
 
-- `a17d959debdb04cd550016a3501dd09d50cd62e7` (`runtime: always use LoadLibraryEx to load system libraries`) （影响旧版未更新 Windows 7）
+- `a17d959debdb04cd550016a3501dd09d50cd62e7` (`runtime: always use LoadLibraryEx to load system libraries`) （影响旧版未更新 Windows 7，具体见下）
 - `7c1157f9544922e96945196b47b95664b1e39108` (`net: remove sysSocket fallback for Windows 7`)
 - `48042aa09c2f878c4faa576948b07fe625c4707a` (`syscall: remove Windows 7 console handle workaround`)
 - `693def151adff1af707d82d28f55dba81ceb08e1` (`crypto/rand,runtime: switch RtlGenRandom for ProcessPrng`)
@@ -20,7 +20,7 @@
 
 由于 Github Actions 目前没有 Windows 7 及 Windows 8 的 runner，因此所有可运行性测试均使用人工测试。
 
-测试环境使用：
+测试环境：
 - Windows 7 SP1 （未进行更新）
 - Windows 8.1 Update 3（未进行更新）
 

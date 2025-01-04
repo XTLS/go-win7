@@ -1,6 +1,6 @@
-# Patched Go toolchain for Windows 7
+# Patched Go SDK for Windows 7
 
-The Go toolchain with patches that can run on Windows 7. Only reverted some modifications from [Go](https://github.com/golang/go).
+The Go SDK with patches that can run on Windows 7. Only reverted some modifications from [Go](https://github.com/golang/go).
 
 If you need other pre-built binaries that does not found in Release, you can fork and build it.
 

@@ -1,8 +1,8 @@
-# Patched Go toolchain for Windows 7
+# Patched Go SDK for Windows 7
 
-The Go toolchain with patches that can run on Windows 7. Only reverted some commits that will break running on Windows 7 from [Go](https://github.com/golang/go).
+The Go SDK with patches that can run on Windows 7. Only reverted some commits that will break running on Windows 7 from [Go](https://github.com/golang/go).
 
-This toolchain is used for building binaries that can run on Windows 7 that does not supported officially by Go now. You can use it freely to build binaries targeting Windows 7 from Go.
+This SDK is used for building binaries that can run on Windows 7 that does not supported officially by Go now. You can use it freely to build binaries targeting Windows 7 from Go.
 
 If you need other pre-built SDK binaries that does not found in Release, you may fork and build it.
 
@@ -10,7 +10,7 @@ If you need other pre-built SDK binaries that does not found in Release, you may
 
 Currently found these changes in Go SDK will stop running Windows 7:
 
-- `a17d959debdb04cd550016a3501dd09d50cd62e7` (`runtime: always use LoadLibraryEx to load system libraries`) (affecting older builds)
+- `a17d959debdb04cd550016a3501dd09d50cd62e7` (`runtime: always use LoadLibraryEx to load system libraries`) (affecting older builds, details in below section)
 - `7c1157f9544922e96945196b47b95664b1e39108` (`net: remove sysSocket fallback for Windows 7`)
 - `48042aa09c2f878c4faa576948b07fe625c4707a` (`syscall: remove Windows 7 console handle workaround`)
 - `693def151adff1af707d82d28f55dba81ceb08e1` (`crypto/rand,runtime: switch RtlGenRandom for ProcessPrng`)
@@ -29,7 +29,7 @@ Testing environment:
 - Windows 8.1 Update 3 / Windows Server 2012 R2: Can run official distributed Go SDK and binaries built from official SDK.
 - Windows 7 SP1 / Windows Server 2008 R2 SP1:
   - Go 1.21rc1 ~ Go 1.21.4: Require update KB4474419 (SHA-2 code signing support update) installed. For computers that have Internet access, it is recommended to install KB4490628 (Servicing stack update) to install subsequent security update.
-  - Go 1.21.5 and onward: Cannot run official distributed SDK or binaries built from official SDK, because of a change of crypto API in toolchain.
+  - Go 1.21.5 and onward: Cannot run official distributed SDK or binaries built from official SDK, because of a change of crypto API in SDK.
 
 ### Go 1.22
 
