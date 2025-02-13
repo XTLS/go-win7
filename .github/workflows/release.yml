@@ -76,8 +76,8 @@ jobs:
               rm go*
               for BINARY in "${DIR}"/*
               do
-                echo "mv ./${DIR}/${BINARY} ./"
-                mv ./${DIR}/${BINARY} ./
+                echo "mv ./${BINARY} ./"
+                mv ./${BINARY} ./
               done
               rm "${DIR}"
             fi
