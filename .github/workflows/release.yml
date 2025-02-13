@@ -63,6 +63,26 @@ jobs:
           . ./make.bash "$@" --no-banner
           "$GOTOOLDIR/dist" banner
           cd ..
+      
+      - name: Copy binaries into bin
+        shell: bash
+        run: |
+          cd ./bin
+          DIRS=(windows_amd64 windows_386 linux_386)
+          for DIR in "${DIRS[@]}"
+          do
+            if [ -d "${DIR}" ]; then
+            echo "Found ${DIR} copying binaries"
+            rm go*
+            for BINARY in "${DIR}"
+            do
+              echo "mv ./${DIR}/${BINARY} ./"
+              mv ./${DIR}/${BINARY} ./
+            done
+            rm "${DIR}"
+          done
+          cd ..
+          ls -al ./bin
 
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v4
