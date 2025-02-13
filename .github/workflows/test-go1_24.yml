@@ -87,7 +87,7 @@ jobs:
                 echo "mv ./${BINARY} ./"
                 mv ./${BINARY} ./
               done
-              rm "${DIR}"
+              rm -r "${DIR}"
             fi
           done
           cd ..
