@@ -74,7 +74,7 @@ jobs:
             if [ -d "${DIR}" ]; then
               echo "Found ${DIR} copying binaries"
               rm go*
-              for BINARY in "${DIR}"
+              for BINARY in "${DIR}"/*
               do
                 echo "mv ./${DIR}/${BINARY} ./"
                 mv ./${DIR}/${BINARY} ./
