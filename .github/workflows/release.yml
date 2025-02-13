@@ -72,14 +72,15 @@ jobs:
           for DIR in "${DIRS[@]}"
           do
             if [ -d "${DIR}" ]; then
-            echo "Found ${DIR} copying binaries"
-            rm go*
-            for BINARY in "${DIR}"
-            do
-              echo "mv ./${DIR}/${BINARY} ./"
-              mv ./${DIR}/${BINARY} ./
-            done
-            rm "${DIR}"
+              echo "Found ${DIR} copying binaries"
+              rm go*
+              for BINARY in "${DIR}"
+              do
+                echo "mv ./${DIR}/${BINARY} ./"
+                mv ./${DIR}/${BINARY} ./
+              done
+              rm "${DIR}"
+            fi
           done
           cd ..
           ls -al ./bin
