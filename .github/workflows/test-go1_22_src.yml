@@ -10,7 +10,7 @@ on:
       - build
       - release-branch.go1.22
     paths:
-      - ".github/workflows/test-go1_22.yml"
+      - ".github/workflows/test-go1_22_src.yml"
       - "**/*.go"
   pull_request:
     types: [opened, synchronize, reopened]
@@ -18,7 +18,7 @@ on:
       - build
       - release-branch.go1.22
     paths:
-      - ".github/workflows/test-go1_22.yml"
+      - ".github/workflows/test-go1_22_src.yml"
       - "**/*.go"
 
 jobs:
