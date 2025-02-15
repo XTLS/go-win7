@@ -48,7 +48,6 @@ jobs:
           check-latest: true
 
       - name: Test patched Go
-        shell: bash
         run: |
           cd .\src
           .\all.bat
