@@ -89,7 +89,8 @@ jobs:
 
       - name: Copy License
         run: |
-          cp -f ${GITHUB_WORKSPACE}/LICENSE ./
+          rm ./LICENSE
+          curl -O https://raw.githubusercontent.com/XTLS/go-win7/refs/heads/build/LICENSE
 
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v4
