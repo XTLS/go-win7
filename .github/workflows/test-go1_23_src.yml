@@ -1,4 +1,4 @@
-name: Builder test Go 1.24
+name: Builder test Go 1.23
 
 on:
   workflow_dispatch:
