@@ -3,8 +3,8 @@ name: Build patched Go 1.24 for tests
 on:
   workflow_dispatch:
   schedule:
-    # Update on every day
-    - cron: '20 0 * * 2,4,6'
+    - cron: '20 0 1-20 * 2,4,6'
+    - cron: '20 0 21-31 * 6'
   push:
     branches:
       - build

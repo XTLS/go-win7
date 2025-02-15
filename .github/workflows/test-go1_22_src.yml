@@ -3,8 +3,8 @@ name: Builder test Go 1.24
 on:
   workflow_dispatch:
   #schedule:
-    # Update on every day
-    #- cron: '5 0 * * 2,4,6'
+    #- cron: '5 0 1-20 * 2,4,6'
+    #- cron: '5 0 21-31 * 6'
   push:
     branches:
       - build
