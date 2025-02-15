@@ -89,7 +89,7 @@ jobs:
 
       - name: Copy License
         run: |
-          cp -f ${GITHUB_WORKSPACE}/LICENSE ./LICENSE
+          cp -f ${GITHUB_WORKSPACE}/LICENSE ./
 
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v4
