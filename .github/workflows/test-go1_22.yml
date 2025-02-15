@@ -8,7 +8,7 @@ on:
   push:
     branches:
       - build
-      - release-branch.go1.22
+      - "release-branch.go1.22"
     paths:
       - ".github/workflows/test-go1_22.yml"
       - "**/*.go"
@@ -16,7 +16,7 @@ on:
     types: [opened, synchronize, reopened]
     branches:
       - build
-      - release-branch.go1.22
+      - "release-branch.go1.22"
     paths:
       - ".github/workflows/test-go1_22.yml"
       - "**/*.go"
@@ -43,12 +43,6 @@ jobs:
           echo "GOOS: $GOOS, GOARCH: $GOARCH, APPLY-BRANCH: ${{ matrix.buildtarget }}"
           echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
 
-      - name: Set-up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: stable
-          check-latest: true
-
       - name: Download source
         uses: actions/checkout@v4
         with:
@@ -63,6 +57,12 @@ jobs:
           curl https://github.com/XTLS/go-win7/commit/481cebf65c4052379cf3cda5db5588c48f2446f6.diff | patch --verbose -p 1
           curl https://github.com/XTLS/go-win7/commit/21d5caecf644a12d938c45f18e2b55f04b47f0b0.diff | patch --verbose -p 1
 
+      - name: Set-up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'src/go.mod'
+          check-latest: true
+
       - name: Build patched Go
         shell: bash
         run: |
@@ -70,7 +70,7 @@ jobs:
           . ./make.bash "$@" --no-banner
           "$GOTOOLDIR/dist" banner
           cd ..
-      
+
       - name: Copy binaries into bin
         shell: bash
         run: |

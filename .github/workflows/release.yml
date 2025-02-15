@@ -36,12 +36,6 @@ jobs:
           echo "GOOS: $GOOS, GOARCH: $GOARCH, GOVER: ${{ matrix.buildtarget }}"
           echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
 
-      - name: Set-up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: stable
-          check-latest: true
-
       - name: Download source
         uses: actions/checkout@v4
         with:
@@ -57,6 +51,12 @@ jobs:
           curl https://github.com/XTLS/go-win7/commit/36d7775e030192d3bf2dc111d1f6cfa89eae5f0c.diff | patch --verbose -p 1
           curl https://github.com/XTLS/go-win7/commit/a3e4d4735a5d89f60b907308b556c5a53614914d.diff | patch --verbose -p 1
 
+      - name: Set-up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'src/go.mod'
+          check-latest: true
+
       - name: Build patched Go
         shell: bash
         run: |
@@ -64,7 +64,7 @@ jobs:
           . ./make.bash "$@" --no-banner
           "$GOTOOLDIR/dist" banner
           cd ..
-      
+
       - name: Copy binaries into bin
         shell: bash
         run: |
@@ -86,6 +86,10 @@ jobs:
           done
           cd ..
           ls -al ./bin
+
+      - name: Copy License
+        run: |
+          cp -f ${GITHUB_WORKSPACE}/LICENSE ./LICENSE
 
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v4

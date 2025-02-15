@@ -8,7 +8,7 @@ on:
   push:
     branches:
       - build
-      - release-branch.go1.23
+      - "release-branch.go1.23"
     paths:
       - ".github/workflows/test-go1_23_src.yml"
       - "**/*.go"
@@ -16,23 +16,17 @@ on:
     types: [opened, synchronize, reopened]
     branches:
       - build
-      - release-branch.go1.23
+      - "release-branch.go1.23"
     paths:
       - ".github/workflows/test-go1_23_src.yml"
       - "**/*.go"
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
       contents: write
     steps:
-      - name: Set-up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: stable
-          check-latest: true
-
       - name: Download source
         uses: actions/checkout@v4
         with:
@@ -47,9 +41,15 @@ jobs:
           curl https://github.com/XTLS/go-win7/commit/719ab22f14443a88dd274f7a41afb86dd41628b1.diff | patch --verbose -p 1
           curl https://github.com/XTLS/go-win7/commit/ac17c301268dd7835236e61c9bfefdf2b8e633d5.diff | patch --verbose -p 1
 
+      - name: Set-up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'src\go.mod'
+          check-latest: true
+
       - name: Test patched Go
         shell: bash
         run: |
-          cd ./src
-          . ./all.bash
-          cd ..
+          cd .\src
+          .\all.bat
+          cd ..\
