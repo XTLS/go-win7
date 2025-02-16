@@ -91,11 +91,6 @@ jobs:
           cd ..
           ls -al ./bin
 
-      - name: Cleanup other directories
-        shell: bash
-        run: |
-          rm -r ./pkg/tool/linux_amd64/
-
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v4
         with:
