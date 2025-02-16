@@ -3,8 +3,7 @@ name: Build patched Go 1.22 for tests
 on:
   workflow_dispatch:
   #schedule:
-    #- cron: '0 0 1-20 * 2,4,6'
-    #- cron: '0 0 21-31 * 6'
+    #- cron: '0 0 * * 4,6'
   push:
     branches:
       - build
@@ -72,23 +71,22 @@ jobs:
           cd ..
 
       - name: Copy binaries into bin
+        if: matrix.goos != 'linux' || matrix.goarch != 'amd64'
         shell: bash
         run: |
           cd ./bin
-          DIRS=(windows_amd64 windows_386)
-          for DIR in "${DIRS[@]}"
-          do
-            if [ -d "${DIR}" ]; then
-              echo "Found ${DIR} copying binaries"
-              rm go*
-              for BINARY in "${DIR}"/*
-              do
-                echo "mv ./${BINARY} ./"
-                mv ./${BINARY} ./
-              done
-              rm -r "${DIR}"
-            fi
-          done
+          DIR="${GOOS}_${GOARCH}"
+          if [ -d "${DIR}" ]; then
+            echo "Found ${DIR} copying binaries"
+            rm ./go*
+            for BINARY in "${DIR}"/*
+            do
+              echo "mv ./${BINARY} ./"
+              mv ./${BINARY} ./
+            done
+            rm -r ./"${DIR}"
+            rm -r ../pkg/tool/linux_amd64/
+          fi
           cd ..
           ls -al ./bin
 

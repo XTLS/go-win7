@@ -66,24 +66,22 @@ jobs:
           cd ..
 
       - name: Copy binaries into bin
+        if: matrix.goos != 'linux' || matrix.goarch != 'amd64'
         shell: bash
         run: |
           cd ./bin
-          DIRS=(windows_amd64 windows_386 windows_arm64 linux_386 linux_arm64)
-          for DIR in "${DIRS[@]}"
-          do
-            if [ -d "${DIR}" ]; then
-              echo "Found ${DIR} copying binaries"
-              rm go*
-              for BINARY in "${DIR}"/*
-              do
-                echo "mv ./${BINARY} ./"
-                mv ./${BINARY} ./
-              done
-              rm -r "${DIR}"
-              rm -r ../pkg/tool/linux_amd64/
-            fi
-          done
+          DIR="${GOOS}_${GOARCH}"
+          if [ -d "${DIR}" ]; then
+            echo "Found ${DIR} copying binaries"
+            rm ./go*
+            for BINARY in "${DIR}"/*
+            do
+              echo "mv ./${BINARY} ./"
+              mv ./${BINARY} ./
+            done
+            rm -r ./"${DIR}"
+            rm -r ../pkg/tool/linux_amd64/
+          fi
           cd ..
           ls -al ./bin
 
