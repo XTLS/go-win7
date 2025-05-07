@@ -59,7 +59,7 @@ These patches must be applied from up to down:
 1. https://github.com/XTLS/go-win7/commit/719ab22f14443a88dd274f7a41afb86dd41628b1 / [Git diff](https://github.com/XTLS/go-win7/commit/719ab22f14443a88dd274f7a41afb86dd41628b1.diff)
 1. https://github.com/XTLS/go-win7/commit/ac17c301268dd7835236e61c9bfefdf2b8e633d5 / [Git diff](https://github.com/XTLS/go-win7/commit/ac17c301268dd7835236e61c9bfefdf2b8e633d5.diff)
 
-### Go 1.24 (Still testing, will change in the future)
+### Go 1.24
 
 - Windows 8.1 Update 3 / Windows Server 2012 R2: Can run official distributed Go SDK and binaries built from official SDK.
 - Windows 7 SP1 / Windows Server 2008 R2: Require patches in SDK, and binaries must be built with patched SDK.
