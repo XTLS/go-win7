@@ -21,9 +21,12 @@ jobs:
       contents: write
     strategy:
       matrix:
-        goos: [windows, linux]
+        goos: [windows, linux, darwin]
         goarch: [amd64, 386, arm64]
         buildtarget: ['go1.24.4']
+        exclude:
+          goos: darwin
+          goarch: 386
       fail-fast: false
     env:
       GOOS: ${{ matrix.goos }}
