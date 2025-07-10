@@ -23,7 +23,7 @@ jobs:
       matrix:
         goos: [windows, linux, darwin]
         goarch: [amd64, 386, arm64]
-        buildtarget: ['go1.24.4']
+        buildtarget: ['go1.24.5']
         exclude:
           -
             goos: darwin
