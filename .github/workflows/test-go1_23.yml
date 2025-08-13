@@ -2,8 +2,8 @@ name: Build patched Go 1.23 for tests
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '10 0 * * 4,6'
+  #schedule:
+    #- cron: '0 0 * * 6'
   push:
     branches:
       - build
