@@ -62,7 +62,7 @@ jobs:
         run: |
           cd ./src
           . ./make.bash "$@" --no-banner
-          "$GOTOOLDIR/dist" banner
+          ../bin/go tool dist banner
           cd ..
 
       - name: Copy binaries into bin
