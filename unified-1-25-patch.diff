@@ -1,3 +1,117 @@
+diff --git a/src/os/removeall_at.go b/src/os/removeall_at.go
+index 5ddc1ade6134e5..61298a46bc70df 100644
+--- a/src/os/removeall_at.go
++++ b/src/os/removeall_at.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build unix || wasip1 || windows
++//go:build unix || wasip1
+ 
+ package os
+ 
+diff --git a/src/os/removeall_noat.go b/src/os/removeall_noat.go
+index 395a1503d49442..02f6fca70283f7 100644
+--- a/src/os/removeall_noat.go
++++ b/src/os/removeall_noat.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build (js && wasm) || plan9
++//go:build (js && wasm) || plan9 || windows
+ 
+ package os
+ 
+diff --git a/src/os/root.go b/src/os/root.go
+index d759727ce7a89b..1ecbcc094f15b0 100644
+--- a/src/os/root.go
++++ b/src/os/root.go
+@@ -189,12 +189,6 @@ func (r *Root) Remove(name string) error {
+ 	return rootRemove(r, name)
+ }
+ 
+-// RemoveAll removes the named file or directory and any children that it contains.
+-// See [RemoveAll] for more details.
+-func (r *Root) RemoveAll(name string) error {
+-	return rootRemoveAll(r, name)
+-}
+-
+ // Stat returns a [FileInfo] describing the named file in the root.
+ // See [Stat] for more details.
+ func (r *Root) Stat(name string) (FileInfo, error) {
+diff --git a/src/os/root_noopenat.go b/src/os/root_noopenat.go
+index 59f1abe91b0b2e..ecdf264f28d7d6 100644
+--- a/src/os/root_noopenat.go
++++ b/src/os/root_noopenat.go
+@@ -11,7 +11,6 @@ import (
+ 	"internal/filepathlite"
+ 	"internal/stringslite"
+ 	"sync/atomic"
+-	"syscall"
+ 	"time"
+ )
+ 
+@@ -186,25 +185,6 @@ func rootRemove(r *Root, name string) error {
+ 	return nil
+ }
+ 
+-func rootRemoveAll(r *Root, name string) error {
+-	if endsWithDot(name) {
+-		// Consistency with os.RemoveAll: Return EINVAL when trying to remove .
+-		return &PathError{Op: "RemoveAll", Path: name, Err: syscall.EINVAL}
+-	}
+-	if err := checkPathEscapesLstat(r, name); err != nil {
+-		if err == syscall.ENOTDIR {
+-			// Some intermediate path component is not a directory.
+-			// RemoveAll treats this as success (since the target doesn't exist).
+-			return nil
+-		}
+-		return &PathError{Op: "RemoveAll", Path: name, Err: err}
+-	}
+-	if err := RemoveAll(joinPath(r.root.name, name)); err != nil {
+-		return &PathError{Op: "RemoveAll", Path: name, Err: underlyingError(err)}
+-	}
+-	return nil
+-}
+-
+ func rootReadlink(r *Root, name string) (string, error) {
+ 	if err := checkPathEscapesLstat(r, name); err != nil {
+ 		return "", &PathError{Op: "readlinkat", Path: name, Err: err}
+diff --git a/src/os/root_openat.go b/src/os/root_openat.go
+index 192c29e319d394..f5473e75bd6adf 100644
+--- a/src/os/root_openat.go
++++ b/src/os/root_openat.go
+@@ -197,28 +197,6 @@ func rootRemove(r *Root, name string) error {
+ 	return nil
+ }
+ 
+-func rootRemoveAll(r *Root, name string) error {
+-	// Consistency with os.RemoveAll: Strip trailing /s from the name,
+-	// so RemoveAll("not_a_directory/") succeeds.
+-	for len(name) > 0 && IsPathSeparator(name[len(name)-1]) {
+-		name = name[:len(name)-1]
+-	}
+-	if endsWithDot(name) {
+-		// Consistency with os.RemoveAll: Return EINVAL when trying to remove .
+-		return &PathError{Op: "RemoveAll", Path: name, Err: syscall.EINVAL}
+-	}
+-	_, err := doInRoot(r, name, nil, func(parent sysfdType, name string) (struct{}, error) {
+-		return struct{}{}, removeAllFrom(parent, name)
+-	})
+-	if IsNotExist(err) {
+-		return nil
+-	}
+-	if err != nil {
+-		return &PathError{Op: "RemoveAll", Path: name, Err: underlyingError(err)}
+-	}
+-	return err
+-}
+-
+ func rootRename(r *Root, oldname, newname string) error {
+ 	_, err := doInRoot(r, oldname, nil, func(oldparent sysfdType, oldname string) (struct{}, error) {
+ 		_, err := doInRoot(r, newname, nil, func(newparent sysfdType, newname string) (struct{}, error) {
 diff --git a/src/crypto/internal/sysrand/rand_windows.go b/src/crypto/internal/sysrand/rand_windows.go
 index 91f1490c15cda3..0c9f06787d0fb3 100644
 --- a/src/crypto/internal/sysrand/rand_windows.go

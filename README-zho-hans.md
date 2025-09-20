@@ -15,6 +15,8 @@
 - `48042aa09c2f878c4faa576948b07fe625c4707a` (`syscall: remove Windows 7 console handle workaround`)
 - `693def151adff1af707d82d28f55dba81ceb08e1` (`crypto/rand,runtime: switch RtlGenRandom for ProcessPrng`)
 - `534d6a1a9c81b25bdad1052e736b2f072caa3903` (`crypto/rand: prevent Read argument from escaping to heap`) （导致应对 `crypto/rand,runtime: switch RtlGenRandom for ProcessPrng` 的补丁故障）
+- `6d418096b2dfe2a2e47b7aa83b46748fb301e6cb` (`os: avoid symlink races in RemoveAll on Windows`)
+- `896097000912761dbd31cead2bec99f17534f521` (`os: add Root.RemoveAll`)
 
 ### 测试环境
 
@@ -76,13 +78,14 @@
 
 ### Go 1.25
 
-- Windows 8.1 Update 3 / Windows Server 2012 R2： 可直接运行官方 Go SDK 及其构建的二进制文件。
+- Windows 8.1 Update 3 / Windows Server 2012 R2： 可直接运行官方 Go SDK 及其构建的二进制文件，但是可能会在文件删除操作上出现问题。
 - Windows 7 SP1 / Windows Server 2008 R2：需要在 SDK 中植入补丁，并且只能运行用修补后的 SDK 构建的二进制。
 
 #### 用于 Windows 7 / Windows Server 2008 R2 的补丁
 
 这些补丁必须按照从上到下的顺序来修补：
 
+1. https://github.com/XTLS/go-win7/commit/0731a1bffeb285ee576629452e095bf833862b9b / [Git diff](https://github.com/XTLS/go-win7/commit/0731a1bffeb285ee576629452e095bf833862b9b.diff)
 1. https://github.com/XTLS/go-win7/commit/830f1acfc984be44520621b001096845ebf40c7a / [Git diff](https://github.com/XTLS/go-win7/commit/830f1acfc984be44520621b001096845ebf40c7a.diff)
 1. https://github.com/XTLS/go-win7/commit/b5e4a6d5b3d0b076414d04cc3d6002f816bc0c25 / [Git diff](https://github.com/XTLS/go-win7/commit/b5e4a6d5b3d0b076414d04cc3d6002f816bc0c25.diff)
 1. https://github.com/XTLS/go-win7/commit/949393bde276adbeaf41688f086feb23e24abe88 / [Git diff](https://github.com/XTLS/go-win7/commit/949393bde276adbeaf41688f086feb23e24abe88.diff)
