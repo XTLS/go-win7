@@ -1,16 +1,16 @@
 Go 1.21
-2023-01-25 https://github.com/golang/go/commit/cc82867f6bf650e6b48a6e87849e4fdd5b94ef70 runtime/race: update race_windows_amd64.syso [effected] [not main function] [wontfix]
-2023-01-31 https://github.com/golang/go/commit/a17d959debdb04cd550016a3501dd09d50cd62e7 runtime: always use LoadLibraryEx to load system libraries [effected]
+2023-01-25 https://github.com/golang/go/commit/cc82867f6bf650e6b48a6e87849e4fdd5b94ef70 runtime/race: update race_windows_amd64.syso [affected] [not main function] [wontfix]
+2023-01-31 https://github.com/golang/go/commit/a17d959debdb04cd550016a3501dd09d50cd62e7 runtime: always use LoadLibraryEx to load system libraries [affected]
 
 Go 1.22
-2023-07-20 https://github.com/golang/go/commit/7c1157f9544922e96945196b47b95664b1e39108 net: remove sysSocket fallback for Windows 7 [effected]
+2023-07-20 https://github.com/golang/go/commit/7c1157f9544922e96945196b47b95664b1e39108 net: remove sysSocket fallback for Windows 7 [affected]
 2023-07-26 https://github.com/golang/go/commit/f0894a00f4b756d4b9b4078af2e686b359493583 os: remove 5ms sleep on Windows in (*Process).Wait [minor]
-2023-09-27 https://github.com/golang/go/commit/48042aa09c2f878c4faa576948b07fe625c4707a syscall: remove Windows 7 console handle workaround [effected]
+2023-09-27 https://github.com/golang/go/commit/48042aa09c2f878c4faa576948b07fe625c4707a syscall: remove Windows 7 console handle workaround [affected]
 2023-10-20 https://github.com/golang/go/commit/693def151adff1af707d82d28f55dba81ceb08e1 crypto/rand,runtime: switch RtlGenRandom for ProcessPrng [critical]
 
 Go 1.24
 2024-10-07 https://github.com/golang/go/commit/534d6a1a9c81b25bdad1052e736b2f072caa3903 crypto/rand: prevent Read argument from escaping to heap [related 693def151adff1af707d82d28f55dba81ceb08e1] [minor]
 
 Go 1.25
-2025-03-31 https://github.com/golang/go/commit/6d418096b2dfe2a2e47b7aa83b46748fb301e6cb os: avoid symlink races in RemoveAll on Windows [effected]
-2025-05-21 https://github.com/golang/go/commit/896097000912761dbd31cead2bec99f17534f521 os: add Root.RemoveAll [related 6d418096b2dfe2a2e47b7aa83b46748fb301e6cb] [effected]
+2025-03-31 https://github.com/golang/go/commit/6d418096b2dfe2a2e47b7aa83b46748fb301e6cb os: avoid symlink races in RemoveAll on Windows [affected]
+2025-05-21 https://github.com/golang/go/commit/896097000912761dbd31cead2bec99f17534f521 os: add Root.RemoveAll [related 6d418096b2dfe2a2e47b7aa83b46748fb301e6cb] [affected]

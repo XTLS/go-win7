@@ -78,7 +78,7 @@ These patches must be applied from up to down:
 
 ### Go 1.25
 
-- Windows 8.1 Update 3 / Windows Server 2012 R2: Can run official distributed Go SDK and binaries built from official SDK, but a problem may occur when removing files.
+- Windows 8.1 Update 3 / Windows Server 2012 R2: Can run official distributed Go SDK and binaries built from official SDK, but a problem may occur when removing files, so now it is also in the range of this repository.
 - Windows 7 SP1 / Windows Server 2008 R2: Require patches in SDK, and binaries must be built with patched SDK.
 
 #### Patches for Windows 7 / Windows Server 2008 R2

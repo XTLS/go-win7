@@ -78,7 +78,7 @@
 
 ### Go 1.25
 
-- Windows 8.1 Update 3 / Windows Server 2012 R2： 可直接运行官方 Go SDK 及其构建的二进制文件，但是可能会在文件删除操作上出现问题。
+- Windows 8.1 Update 3 / Windows Server 2012 R2： 可直接运行官方 Go SDK 及其构建的二进制文件，但是可能会在文件删除操作上出现问题，因此纳入本仓库管理范围。
 - Windows 7 SP1 / Windows Server 2008 R2：需要在 SDK 中植入补丁，并且只能运行用修补后的 SDK 构建的二进制。
 
 #### 用于 Windows 7 / Windows Server 2008 R2 的补丁
