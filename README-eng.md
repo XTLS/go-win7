@@ -23,17 +23,27 @@ Currently found these changes in Go SDK will stop running Windows 7:
 All running tests are under manual operation due to there are no runners based on Windows 7 and Windows 8 in Github Actions.
 
 Testing environment:
-- Windows 7 SP1 (with no other update installed)
-- Windows 8.1 Update 3 (with no other update installed)
+- Windows 7 SP1 / Windows Server 2008 R2 SP1 (Build 7601.17514) (with no other updates installed)
+- Windows 8.1 Update 3 / Windows Server 2012 R2 SP1 (Build 9600.17514) (with no other updates installed)
 
-### Go 1.21
+### Compatibilities
+
+- **The binary executables compiled by this SDK can run normally on Windows 7 (and Windows 8.1). This is guaranteed during the maintenance of the project.** Contact us if there are issues when running these executables on Windows 7 & 8.1.
+- **Race Detector does not work on Windows 7 since Go 1.21.** This is a widespread problem which needs fixing for all Go 1.N (N>20). Due to the late report, and side-effects may occur after the fixing, this issue will not be fixed during the maintenance. Whether there are SDK releases with fixing on this issue after the sunsetting on the project needs discussions.
+- Whether the SDK runs compiling jobs on Windows 7: **Theoretically yes, actually it depends on the installed OS environment running on**
+  - Microsoft made functional changes to Windows throught Windows updates before Windows 10. This also changed the software compatibility of the OSes. For Windows 7, major updates that came with compatibility changes includes: *Service Pack 1* , *Platform Update for Windows 7 (KB2670838)* , *Windows Management Framework 5.0* and *SHA-2 Code Signing Support Update (KB4474419)* .
+  - The Windows 7 testing environment only has Service Pack 1 installed to prevent inconsistant results of compatibility tests. The bootstrapping compiling of the SDK was never success in the testing environment (Windows 7), and it cannot compile a project with libraries imported outside of standard libraries due to no network connection for security concerns. So whether the SDK can run the compiling job on Windows 7 is unclear.
+  - Currently the boostrapping compiling test and project compiling test run on Windows 8.1 Update 3 / Windows Server 2012 R2 SP1. Theoretically the SDK can run compile jobs smoothly on Windows 7 which had installed most of the updates (at least PowerShell needs to be updated).
+  - If issues occur during compiling, which compiling jobs running on Windows 7, you may consider: compile the executables on newer OSes (Windows, macOS, Linux, etc.) then copy the executables to Windows 7 running machines through networks or storage devices.
+
+## Go 1.21
 
 - Windows 8.1 Update 3 / Windows Server 2012 R2: Can run official distributed Go SDK and binaries built from official SDK.
 - Windows 7 SP1 / Windows Server 2008 R2 SP1:
   - Go 1.21rc1 ~ Go 1.21.4: Require update KB4474419 (SHA-2 code signing support update) installed. For computers that have Internet access, it is recommended to install KB4490628 (Servicing stack update) to install subsequent security update.
   - Go 1.21.5 and onward: Cannot run official distributed SDK or binaries built from official SDK, because of a change of crypto API in SDK.
 
-### Go 1.22
+## Go 1.22
 
 - Windows 8.1 Update 3 / Windows Server 2012 R2: Can run official distributed Go SDK and binaries built from official SDK.
 - Windows 7 SP1 / Windows Server 2008 R2: Require patches in SDK, and binaries must be built with patched SDK.
@@ -47,7 +57,7 @@ These patches must be applied from up to down:
 1. https://github.com/XTLS/go-win7/commit/481cebf65c4052379cf3cda5db5588c48f2446f6 / [Git diff](https://github.com/XTLS/go-win7/commit/481cebf65c4052379cf3cda5db5588c48f2446f6.diff)
 1. https://github.com/XTLS/go-win7/commit/21d5caecf644a12d938c45f18e2b55f04b47f0b0 / [Git diff](https://github.com/XTLS/go-win7/commit/21d5caecf644a12d938c45f18e2b55f04b47f0b0.diff)
 
-### Go 1.23
+## Go 1.23
 
 - Windows 8.1 Update 3 / Windows Server 2012 R2: Can run official distributed Go SDK and binaries built from official SDK.
 - Windows 7 SP1 / Windows Server 2008 R2: Require patches in SDK, and binaries must be built with patched SDK.
@@ -61,7 +71,7 @@ These patches must be applied from up to down:
 1. https://github.com/XTLS/go-win7/commit/719ab22f14443a88dd274f7a41afb86dd41628b1 / [Git diff](https://github.com/XTLS/go-win7/commit/719ab22f14443a88dd274f7a41afb86dd41628b1.diff)
 1. https://github.com/XTLS/go-win7/commit/ac17c301268dd7835236e61c9bfefdf2b8e633d5 / [Git diff](https://github.com/XTLS/go-win7/commit/ac17c301268dd7835236e61c9bfefdf2b8e633d5.diff)
 
-### Go 1.24
+## Go 1.24
 
 - Windows 8.1 Update 3 / Windows Server 2012 R2: Can run official distributed Go SDK and binaries built from official SDK.
 - Windows 7 SP1 / Windows Server 2008 R2: Require patches in SDK, and binaries must be built with patched SDK.
@@ -76,7 +86,7 @@ These patches must be applied from up to down:
 1. https://github.com/XTLS/go-win7/commit/36d7775e030192d3bf2dc111d1f6cfa89eae5f0c / [Git diff](https://github.com/XTLS/go-win7/commit/36d7775e030192d3bf2dc111d1f6cfa89eae5f0c.diff)
 1. https://github.com/XTLS/go-win7/commit/a3e4d4735a5d89f60b907308b556c5a53614914d / [Git diff](https://github.com/XTLS/go-win7/commit/a3e4d4735a5d89f60b907308b556c5a53614914d.diff)
 
-### Go 1.25
+## Go 1.25
 
 - Windows 8.1 Update 3 / Windows Server 2012 R2: Can run official distributed Go SDK and binaries built from official SDK, but a problem may occur when removing files, so now it is also in the range of this repository.
 - Windows 7 SP1 / Windows Server 2008 R2: Require patches in SDK, and binaries must be built with patched SDK.

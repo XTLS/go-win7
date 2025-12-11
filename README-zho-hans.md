@@ -23,17 +23,27 @@
 由于 Github Actions 目前没有 Windows 7 及 Windows 8 的 runner，因此所有可运行性测试均使用人工测试。
 
 测试环境：
-- Windows 7 SP1 （未进行更新）
-- Windows 8.1 Update 3（未进行更新）
+- Windows 7 SP1 / Windows Server 2008 R2 SP1 (Build 7601.17514) （未进行更新）
+- Windows 8.1 Update 3 / Windows Server 2012 R2 SP1 (Build 9600.17514) （未进行更新）
 
-### Go 1.21
+### 兼容性说明
+
+- **目前该 SDK 编译出的二进制可执行文件能正常在 Windows 7 （以及 Windows 8.1）中运行，这一点在项目维护期内可保证。** 如有运行上的问题还请联系。
+- **Race Detector 自 Go 1.21 开始无法在 Windows 7 上正常使用。** 该问题覆盖面较广需要对所有 1.N (N>20) 版本进行修复，由于该问题报告较晚并且修复方案可能会出现预期外的问题，因此项目维护期内不会进行修复。维护期结束后是否释出针对 Race Detector 的修复版本仍有待商榷。
+- 该 SDK 能否在 Windows 7 上进行编译作业： **理论上可行，实际上取决于运行编译时的系统环境**
+  - 微软在 Windows 10 以前的系统中在支持周期内会通过 Windows Update 更新对系统进行更改，操作系统的软件兼容性也会因此发生变化。对 Windows 7 来说这些影响兼容性的主要更新分别为 *Service Pack 1* 、 *平台更新(KB2670838)* 、 *Windows Management Framework 5.0* 以及 *SHA-2 代码签名支持更新(KB4474419)* 。
+  - 目前使用的测试环境中为了避免兼容性上的不一致表现， Windows 7 仅包含 SP1 而未安装其余更新，但该 SDK 在其中的自举编译并未成功，且由于安全性问题该测试环境并未连接到任何网络，在其中编译带有非标准库的 Go 程序并未可行，因此对于该 SDK 能否在 Windows 7 下顺利进行编译作业不甚明确。
+  - 目前在 Windows 下的自举编译测试及一般 Go 程序编译测试均在 Windows 8.1 Update 3 / Windows Server 2012 R2 SP1 中进行，而我们目前可以认为对于安装了绝大部分更新的 Windows 7 系统来说，该 SDK 理论上可以在这样的环境下顺利进行编译作业（至少 Powershell 需要更新）。
+  - 如果在 Windows 7 下进行编译作业时出现问题，可以考虑在更新的系统中进行编译后将编译产生的二进制通过网络或其它存储介质复制到运行 Windows 7 的系统上。
+
+## Go 1.21
 
 - Windows 8.1 Update 3 / Windows Server 2012 R2： 可直接运行官方 Go SDK 及其构建的二进制文件。
 - Windows 7 SP1 / Windows Server 2008 R2 SP1：
   - Go 1.21rc1 ~ Go 1.21.4：需要系统安装编号为 KB4474419（SHA-2 代码签名支持更新）的更新。对有互联网连接的机器，推荐同时安装编号为 KB4490628（服务堆栈更新）的更新来获取后续安全更新。
   - Go 1.21.5 及以上版本：因为 crypto 包中对系统 API 调用的调整，无法运行官方 SDK 及用官方 SDK 构建的二进制。
 
-### Go 1.22
+## Go 1.22
 
 - Windows 8.1 Update 3 / Windows Server 2012 R2： 可直接运行官方 Go SDK 及其构建的二进制文件。
 - Windows 7 SP1 / Windows Server 2008 R2：需要在 SDK 中植入补丁，并且只能运行用修补后的 SDK 构建的二进制。
@@ -47,7 +57,7 @@
 1. https://github.com/XTLS/go-win7/commit/481cebf65c4052379cf3cda5db5588c48f2446f6 / [Git diff](https://github.com/XTLS/go-win7/commit/481cebf65c4052379cf3cda5db5588c48f2446f6.diff)
 1. https://github.com/XTLS/go-win7/commit/21d5caecf644a12d938c45f18e2b55f04b47f0b0 / [Git diff](https://github.com/XTLS/go-win7/commit/21d5caecf644a12d938c45f18e2b55f04b47f0b0.diff)
 
-### Go 1.23
+## Go 1.23
 
 - Windows 8.1 Update 3 / Windows Server 2012 R2： 可直接运行官方 Go SDK 及其构建的二进制文件。
 - Windows 7 SP1 / Windows Server 2008 R2：需要在 SDK 中植入补丁，并且只能运行用修补后的 SDK 构建的二进制。
@@ -61,7 +71,7 @@
 1. https://github.com/XTLS/go-win7/commit/719ab22f14443a88dd274f7a41afb86dd41628b1 / [Git diff](https://github.com/XTLS/go-win7/commit/719ab22f14443a88dd274f7a41afb86dd41628b1.diff)
 1. https://github.com/XTLS/go-win7/commit/ac17c301268dd7835236e61c9bfefdf2b8e633d5 / [Git diff](https://github.com/XTLS/go-win7/commit/ac17c301268dd7835236e61c9bfefdf2b8e633d5.diff)
 
-### Go 1.24
+## Go 1.24
 
 - Windows 8.1 Update 3 / Windows Server 2012 R2： 可直接运行官方 Go SDK 及其构建的二进制文件。
 - Windows 7 SP1 / Windows Server 2008 R2：需要在 SDK 中植入补丁，并且只能运行用修补后的 SDK 构建的二进制。
@@ -76,7 +86,7 @@
 1. https://github.com/XTLS/go-win7/commit/36d7775e030192d3bf2dc111d1f6cfa89eae5f0c / [Git diff](https://github.com/XTLS/go-win7/commit/36d7775e030192d3bf2dc111d1f6cfa89eae5f0c.diff)
 1. https://github.com/XTLS/go-win7/commit/a3e4d4735a5d89f60b907308b556c5a53614914d / [Git diff](https://github.com/XTLS/go-win7/commit/a3e4d4735a5d89f60b907308b556c5a53614914d.diff)
 
-### Go 1.25
+## Go 1.25
 
 - Windows 8.1 Update 3 / Windows Server 2012 R2： 可直接运行官方 Go SDK 及其构建的二进制文件，但是可能会在文件删除操作上出现问题，因此纳入本仓库管理范围。
 - Windows 7 SP1 / Windows Server 2008 R2：需要在 SDK 中植入补丁，并且只能运行用修补后的 SDK 构建的二进制。
