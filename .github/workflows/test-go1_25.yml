@@ -59,7 +59,7 @@ jobs:
         # curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://github.com/XTLS/go-win7/commit/fc29c4ae1cd53d6761d4324c4625cc8a149c55d3.diff | patch --verbose -p 1
 
       - name: Set-up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: 'src/go.mod'
           check-latest: true
