@@ -100,3 +100,17 @@
 1. https://github.com/XTLS/go-win7/commit/b5e4a6d5b3d0b076414d04cc3d6002f816bc0c25 / [Git diff](https://github.com/XTLS/go-win7/commit/b5e4a6d5b3d0b076414d04cc3d6002f816bc0c25.diff)
 1. https://github.com/XTLS/go-win7/commit/949393bde276adbeaf41688f086feb23e24abe88 / [Git diff](https://github.com/XTLS/go-win7/commit/949393bde276adbeaf41688f086feb23e24abe88.diff)
 1. https://github.com/XTLS/go-win7/commit/fc29c4ae1cd53d6761d4324c4625cc8a149c55d3 / [Git diff](https://github.com/XTLS/go-win7/commit/fc29c4ae1cd53d6761d4324c4625cc8a149c55d3.diff)
+
+## Go 1.26
+
+- Windows 8.1 Update 3 / Windows Server 2012 R2： 可直接运行官方 Go SDK 及其构建的二进制文件，但是可能会在文件删除操作上出现问题，因此纳入本仓库管理范围。
+- Windows 7 SP1 / Windows Server 2008 R2：需要系统已安装 KB4474419，SDK 中已植入补丁，并且只能运行用修补后的 SDK 构建的二进制。
+
+#### 用于 Windows 7 / Windows Server 2008 R2 的补丁
+
+这些补丁必须按照从上到下的顺序来修补：
+
+1. https://github.com/XTLS/go-win7/commit/86eda38dabd1753092f64de7dcd2050d346c89b4 / [Git diff](https://github.com/XTLS/go-win7/commit/86eda38dabd1753092f64de7dcd2050d346c89b4.diff)
+1. https://github.com/XTLS/go-win7/commit/c3e5e430625ba7ab5d638c753f94cc52253793f5 / [Git diff](https://github.com/XTLS/go-win7/commit/c3e5e430625ba7ab5d638c753f94cc52253793f5.diff)
+1. https://github.com/XTLS/go-win7/commit/d72cb94820d800b72f4c7a018f3948908b876460 / [Git diff](https://github.com/XTLS/go-win7/commit/d72cb94820d800b72f4c7a018f3948908b876460.diff)
+1. https://github.com/XTLS/go-win7/commit/0d36c60d2c0754fde7e4e7e4773e0349527cff08 / [Git diff](https://github.com/XTLS/go-win7/commit/0d36c60d2c0754fde7e4e7e4773e0349527cff08.diff)

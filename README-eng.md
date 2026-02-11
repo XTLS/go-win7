@@ -100,3 +100,17 @@ These patches must be applied from up to down:
 1. https://github.com/XTLS/go-win7/commit/b5e4a6d5b3d0b076414d04cc3d6002f816bc0c25 / [Git diff](https://github.com/XTLS/go-win7/commit/b5e4a6d5b3d0b076414d04cc3d6002f816bc0c25.diff)
 1. https://github.com/XTLS/go-win7/commit/949393bde276adbeaf41688f086feb23e24abe88 / [Git diff](https://github.com/XTLS/go-win7/commit/949393bde276adbeaf41688f086feb23e24abe88.diff)
 1. https://github.com/XTLS/go-win7/commit/fc29c4ae1cd53d6761d4324c4625cc8a149c55d3 / [Git diff](https://github.com/XTLS/go-win7/commit/fc29c4ae1cd53d6761d4324c4625cc8a149c55d3.diff)
+
+## Go 1.26
+
+- Windows 8.1 Update 3 / Windows Server 2012 R2: Can run official distributed Go SDK and binaries built from official SDK, but a problem may occur when removing files, so now it is also in the range of this repository.
+- Windows 7 SP1 / Windows Server 2008 R2: Require KB4474419 installed, require patches in SDK, and binaries must be built with patched SDK.
+
+#### Patches for Windows 7 / Windows Server 2008 R2
+
+These patches must be applied from up to down:
+
+1. https://github.com/XTLS/go-win7/commit/86eda38dabd1753092f64de7dcd2050d346c89b4 / [Git diff](https://github.com/XTLS/go-win7/commit/86eda38dabd1753092f64de7dcd2050d346c89b4.diff)
+1. https://github.com/XTLS/go-win7/commit/c3e5e430625ba7ab5d638c753f94cc52253793f5 / [Git diff](https://github.com/XTLS/go-win7/commit/c3e5e430625ba7ab5d638c753f94cc52253793f5.diff)
+1. https://github.com/XTLS/go-win7/commit/d72cb94820d800b72f4c7a018f3948908b876460 / [Git diff](https://github.com/XTLS/go-win7/commit/d72cb94820d800b72f4c7a018f3948908b876460.diff)
+1. https://github.com/XTLS/go-win7/commit/0d36c60d2c0754fde7e4e7e4773e0349527cff08 / [Git diff](https://github.com/XTLS/go-win7/commit/0d36c60d2c0754fde7e4e7e4773e0349527cff08.diff)

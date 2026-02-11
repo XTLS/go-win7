@@ -14,3 +14,8 @@ Go 1.24
 Go 1.25
 2025-03-31 https://github.com/golang/go/commit/6d418096b2dfe2a2e47b7aa83b46748fb301e6cb os: avoid symlink races in RemoveAll on Windows [affected]
 2025-05-21 https://github.com/golang/go/commit/896097000912761dbd31cead2bec99f17534f521 os: add Root.RemoveAll [related 6d418096b2dfe2a2e47b7aa83b46748fb301e6cb] [affected]
+
+Go 1.26
+2025-09-12
+2025-08-01 https://github.com/golang/go/commit/ef4054978692bd934eb575d0027c1c5476af9931 runtime,syscall: move loadlibrary and getprocaddress to syscall [related a17d959debdb04cd550016a3501dd09d50cd62e7] [partial affected]
+2025-09-12 https://github.com/golang/go/commit/889e71c2ac43f22dbd41c0b935acac2e778c8f87 runtime: move Windows types and consts to internal/runtime/syscall/windows [related 48042aa09c2f878c4faa576948b07fe625c4707a] [patch reconstruct needed]
