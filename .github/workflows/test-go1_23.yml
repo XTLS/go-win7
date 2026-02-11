@@ -43,7 +43,7 @@ jobs:
           echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
 
       - name: Download source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: 'golang/go'
           ref: ${{ matrix.buildtarget }}
