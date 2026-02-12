@@ -104,7 +104,7 @@ These patches must be applied from up to down:
 ## Go 1.26
 
 - Windows 8.1 Update 3 / Windows Server 2012 R2: Can run official distributed Go SDK and binaries built from official SDK, but a problem may occur when removing files, so now it is also in the range of this repository.
-- Windows 7 SP1 / Windows Server 2008 R2: Require KB4474419 installed, require patches in SDK, and binaries must be built with patched SDK.
+- Windows 7 SP1 / Windows Server 2008 R2: Require KB2533623 installed, require patches in SDK, and binaries must be built with patched SDK.
 
 #### Patches for Windows 7 / Windows Server 2008 R2
 
@@ -114,3 +114,7 @@ These patches must be applied from up to down:
 1. https://github.com/XTLS/go-win7/commit/c3e5e430625ba7ab5d638c753f94cc52253793f5 / [Git diff](https://github.com/XTLS/go-win7/commit/c3e5e430625ba7ab5d638c753f94cc52253793f5.diff)
 1. https://github.com/XTLS/go-win7/commit/d72cb94820d800b72f4c7a018f3948908b876460 / [Git diff](https://github.com/XTLS/go-win7/commit/d72cb94820d800b72f4c7a018f3948908b876460.diff)
 1. https://github.com/XTLS/go-win7/commit/0d36c60d2c0754fde7e4e7e4773e0349527cff08 / [Git diff](https://github.com/XTLS/go-win7/commit/0d36c60d2c0754fde7e4e7e4773e0349527cff08.diff)
+
+For Windows 7 without KB2533623 installed, these patches are also needed:
+
+1. https://github.com/XTLS/go-win7/raw/refs/heads/build/pre-KB2533623-1-26.diff
