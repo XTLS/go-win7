@@ -171,7 +171,7 @@ diff --git a/src/net/hook_windows.go b/src/net/hook_windows.go
 index f7c5b5af90fe35..6b82be526e7da5 100644
 --- a/src/net/hook_windows.go
 +++ b/src/net/hook_windows.go
-@@ -13,6 +13,6 @@ var (
+@@ -13,7 +13,7 @@ var (
  	hostsFilePath = windows.GetSystemDirectory() + "/Drivers/etc/hosts"
  
  	// Placeholders for socket system calls.
@@ -181,6 +181,7 @@ index f7c5b5af90fe35..6b82be526e7da5 100644
 +	socketFunc  func(int, int, int) (syscall.Handle, error)  = syscall.Socket
 +	connectFunc func(syscall.Handle, syscall.Sockaddr) error = syscall.Connect
 +	listenFunc  func(syscall.Handle, int) error              = syscall.Listen
+ )
 diff --git a/src/net/internal/socktest/sys_windows.go b/src/net/internal/socktest/sys_windows.go
 index 2f024460751b54..6f02d18b8ef60f 100644
 --- a/src/net/internal/socktest/sys_windows.go
