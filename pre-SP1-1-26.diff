@@ -171,7 +171,7 @@ diff --git a/src/net/hook_windows.go b/src/net/hook_windows.go
 index f7c5b5af90fe35..6b82be526e7da5 100644
 --- a/src/net/hook_windows.go
 +++ b/src/net/hook_windows.go
-@@ -13,6 +13,7 @@ var (
+@@ -13,6 +13,6 @@ var (
  	hostsFilePath = windows.GetSystemDirectory() + "/Drivers/etc/hosts"
  
  	// Placeholders for socket system calls.
@@ -185,7 +185,7 @@ diff --git a/src/net/internal/socktest/sys_windows.go b/src/net/internal/socktes
 index 2f024460751b54..6f02d18b8ef60f 100644
 --- a/src/net/internal/socktest/sys_windows.go
 +++ b/src/net/internal/socktest/sys_windows.go
-@@ -9,6 +9,38 @@ import (
+@@ -9,37 +9,37 @@ import (
  	"syscall"
  )
  
@@ -258,7 +258,7 @@ diff --git a/src/net/sock_windows.go b/src/net/sock_windows.go
 index a519909bb045c2..294fc140a38c06 100644
 --- a/src/net/sock_windows.go
 +++ b/src/net/sock_windows.go
-@@ -20,6 +20,21 @@ func maxListenerBacklog() int {
+@@ -20,8 +20,13 @@ func maxListenerBacklog() int {
  }
  
  func sysSocket(family, sotype, proto int) (syscall.Handle, error) {
