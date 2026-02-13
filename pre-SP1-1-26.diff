@@ -259,7 +259,15 @@ diff --git a/src/net/sock_windows.go b/src/net/sock_windows.go
 index a519909bb045c2..294fc140a38c06 100644
 --- a/src/net/sock_windows.go
 +++ b/src/net/sock_windows.go
-@@ -20,8 +20,13 @@ func maxListenerBacklog() int {
+@@ -7,7 +7,6 @@
+ package net
+ 
+ import (
+-	"internal/syscall/windows"
+ 	"os"
+ 	"syscall"
+ )
+@@ -20,8 +19,13 @@ func maxListenerBacklog() int {
  }
  
  func sysSocket(family, sotype, proto int) (syscall.Handle, error) {
