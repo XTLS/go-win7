@@ -186,8 +186,12 @@ diff --git a/src/net/internal/socktest/sys_windows.go b/src/net/internal/socktes
 index 2f024460751b54..6f02d18b8ef60f 100644
 --- a/src/net/internal/socktest/sys_windows.go
 +++ b/src/net/internal/socktest/sys_windows.go
-@@ -9,37 +9,37 @@ import (
- 	"syscall"
+@@ -4,41 +4,40 @@
+ package socktest
+ 
+ import (
+-	"internal/syscall/windows"
+  	"syscall"
  )
  
 -// WSASocket wraps [syscall.WSASocket].
