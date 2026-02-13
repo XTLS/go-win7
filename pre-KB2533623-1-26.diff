@@ -132,7 +132,7 @@ index 9d779869531788..5dc7d3162e71ba 100644
  	if handle != 0 {
  		err = 0
  	}
-@@ -119,9 +119,10 @@ func loadlibrary(filename *uint16) (uintptr, Errno) {
+@@ -119,9 +119,8 @@ func loadlibrary(filename *uint16) (uintptr, Errno) {
  }
  
  //go:linkname loadsystemlibrary
@@ -144,7 +144,7 @@ index 9d779869531788..5dc7d3162e71ba 100644
  	if handle != 0 {
  		err = 0
  	}
-@@ -143,6 +144,9 @@ type DLL struct {
+@@ -143,6 +142,9 @@ type DLL struct {
  	Handle Handle
  }
  
@@ -154,7 +154,7 @@ index 9d779869531788..5dc7d3162e71ba 100644
  // LoadDLL loads the named DLL file into memory.
  //
  // If name is not an absolute path and is not a known system DLL used by
-@@ -159,7 +163,11 @@ func LoadDLL(name string) (*DLL, error) {
+@@ -159,7 +161,11 @@ func LoadDLL(name string) (*DLL, error) {
  	var h uintptr
  	var e Errno
  	if sysdll.IsSystemDLL[name] {
