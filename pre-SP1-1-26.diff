@@ -191,7 +191,7 @@ index 2f024460751b54..6f02d18b8ef60f 100644
  
  import (
 -	"internal/syscall/windows"
-  	"syscall"
+ 	"syscall"
  )
  
 -// WSASocket wraps [syscall.WSASocket].
