@@ -154,12 +154,12 @@ jobs:
         if: github.event_name == 'release'
         shell: bash
         run: |
-          zip -9vr ./source-pre-LoadLibraryEx.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*"
+          zip -9vr ./source-pre-KB2533623.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*"
 
       - name: Compute hashes for file
         if: github.event_name == 'release'
         run: |
-          FILE=./source-pre-LoadLibraryEx.zip
+          FILE=./source-pre-KB2533623.zip
           DGST=$FILE.dgst
           for METHOD in {"md5","sha1","sha256","sha512"}
           do
@@ -171,6 +171,63 @@ jobs:
         if: github.event_name == 'release'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./source-pre-LoadLibraryEx.zip*
+          file: ./source-pre-KB2533623.zip*
+          tag: ${{ github.ref }}
+          file_glob: true
+
+  pre-ws:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        buildtarget: ['go1.26.0']
+      fail-fast: false
+    steps:
+      - name: Download source
+        uses: actions/checkout@v6
+        with:
+          repository: 'golang/go'
+          ref: ${{ matrix.buildtarget }}
+
+      - name: Apply patch
+        run: |
+          curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://github.com/XTLS/go-win7/raw/refs/heads/build/unified-1-26-patch.diff | patch --verbose -p 1
+          curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://github.com/XTLS/go-win7/raw/refs/heads/build/pre-SP1-1-26.diff | patch --verbose -p 1
+
+      - name: Copy License
+        run: |
+          rm ./LICENSE
+          curl -O https://raw.githubusercontent.com/XTLS/go-win7/refs/heads/build/LICENSE
+
+      - name: Upload package to Artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: source-pre-SP1
+          path: |
+            ./*
+
+      - name: create ZIP archive
+        if: github.event_name == 'release'
+        shell: bash
+        run: |
+          zip -9vr ./source-pre-SP1.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*"
+
+      - name: Compute hashes for file
+        if: github.event_name == 'release'
+        run: |
+          FILE=./source-pre-SP1.zip
+          DGST=$FILE.dgst
+          for METHOD in {"md5","sha1","sha256","sha512"}
+          do
+            openssl dgst -$METHOD $FILE | sed 's/([^)]*)//g' >>$DGST
+          done
+
+      - name: Upload packages to release
+        uses: svenstaro/upload-release-action@v2
+        if: github.event_name == 'release'
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./source-pre-SP1.zip*
           tag: ${{ github.ref }}
           file_glob: true

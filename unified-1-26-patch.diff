@@ -108,87 +108,6 @@ index d087fd46f6b27b..626ed0ff90262d 100644
  	if r1 == 0 {
  		err = errnoErr(e1)
  	}
-diff --git a/src/net/hook_windows.go b/src/net/hook_windows.go
-index f7c5b5af90fe35..6b82be526e7da5 100644
---- a/src/net/hook_windows.go
-+++ b/src/net/hook_windows.go
-@@ -13,6 +13,7 @@ var (
- 	hostsFilePath = windows.GetSystemDirectory() + "/Drivers/etc/hosts"
- 
- 	// Placeholders for socket system calls.
-+	socketFunc    func(int, int, int) (syscall.Handle, error)                                                 = syscall.Socket
- 	wsaSocketFunc func(int32, int32, int32, *syscall.WSAProtocolInfo, uint32, uint32) (syscall.Handle, error) = windows.WSASocket
- 	connectFunc   func(syscall.Handle, syscall.Sockaddr) error                                                = syscall.Connect
- 	listenFunc    func(syscall.Handle, int) error                                                             = syscall.Listen
-diff --git a/src/net/internal/socktest/sys_windows.go b/src/net/internal/socktest/sys_windows.go
-index 2f024460751b54..6f02d18b8ef60f 100644
---- a/src/net/internal/socktest/sys_windows.go
-+++ b/src/net/internal/socktest/sys_windows.go
-@@ -9,6 +9,38 @@ import (
- 	"syscall"
- )
- 
-+// Socket wraps [syscall.Socket].
-+func (sw *Switch) Socket(family, sotype, proto int) (s syscall.Handle, err error) {
-+	sw.once.Do(sw.init)
-+
-+	so := &Status{Cookie: cookie(family, sotype, proto)}
-+	sw.fmu.RLock()
-+	f, _ := sw.fltab[FilterSocket]
-+	sw.fmu.RUnlock()
-+
-+	af, err := f.apply(so)
-+	if err != nil {
-+		return syscall.InvalidHandle, err
-+	}
-+	s, so.Err = syscall.Socket(family, sotype, proto)
-+	if err = af.apply(so); err != nil {
-+		if so.Err == nil {
-+			syscall.Closesocket(s)
-+		}
-+		return syscall.InvalidHandle, err
-+	}
-+
-+	sw.smu.Lock()
-+	defer sw.smu.Unlock()
-+	if so.Err != nil {
-+		sw.stats.getLocked(so.Cookie).OpenFailed++
-+		return syscall.InvalidHandle, so.Err
-+	}
-+	nso := sw.addLocked(s, family, sotype, proto)
-+	sw.stats.getLocked(nso.Cookie).Opened++
-+	return s, nil
-+}
-+
- // WSASocket wraps [syscall.WSASocket].
- func (sw *Switch) WSASocket(family, sotype, proto int32, protinfo *syscall.WSAProtocolInfo, group uint32, flags uint32) (s syscall.Handle, err error) {
- 	sw.once.Do(sw.init)
-diff --git a/src/net/sock_windows.go b/src/net/sock_windows.go
-index a519909bb045c2..294fc140a38c06 100644
---- a/src/net/sock_windows.go
-+++ b/src/net/sock_windows.go
-@@ -20,6 +20,21 @@ func maxListenerBacklog() int {
- func sysSocket(family, sotype, proto int) (syscall.Handle, error) {
- 	s, err := wsaSocketFunc(int32(family), int32(sotype), int32(proto),
- 		nil, 0, windows.WSA_FLAG_OVERLAPPED|windows.WSA_FLAG_NO_HANDLE_INHERIT)
-+	if err == nil {
-+		return s, nil
-+	}
-+	// WSA_FLAG_NO_HANDLE_INHERIT flag is not supported on some
-+	// old versions of Windows, see
-+	// https://msdn.microsoft.com/en-us/library/windows/desktop/ms742212(v=vs.85).aspx
-+	// for details. Just use syscall.Socket, if windows.WSASocket failed.
-+
-+	// See ../syscall/exec_unix.go for description of ForkLock.
-+	syscall.ForkLock.RLock()
-+	s, err = socketFunc(family, sotype, proto)
-+	if err == nil {
-+		syscall.CloseOnExec(s)
-+	}
-+	syscall.ForkLock.RUnlock()
- 	if err != nil {
- 		return syscall.InvalidHandle, os.NewSyscallError("socket", err)
- 	}
 diff --git a/src/os/removeall_at.go b/src/os/removeall_at.go
 index 5ddc1ade6134e5..61298a46bc70df 100644
 --- a/src/os/removeall_at.go
@@ -404,14 +323,6 @@ diff --git a/src/syscall/exec_windows.go b/src/syscall/exec_windows.go
 index 96089fcd93a634..e6bec34005f8a9 100644
 --- a/src/syscall/exec_windows.go
 +++ b/src/syscall/exec_windows.go
-@@ -15,7 +15,6 @@ import (
- 	"unsafe"
- )
- 
--// ForkLock is not used on Windows.
- var ForkLock sync.RWMutex
- 
- // EscapeArg rewrites command line argument s as prescribed
 @@ -304,6 +303,9 @@ type SysProcAttr struct {
  var zeroProcAttr ProcAttr
  var zeroSysProcAttr SysProcAttr
