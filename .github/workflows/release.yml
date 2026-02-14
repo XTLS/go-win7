@@ -97,7 +97,7 @@ jobs:
         if: github.event_name == 'release'
         shell: bash
         run: |
-          zip -9vr ./go-for-win7-${{ env.ASSET_NAME }}.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*"
+          zip -9vr ./go-for-win7-${{ env.ASSET_NAME }}.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go"
 
       - name: Compute hashes for file
         if: github.event_name == 'release'
@@ -154,7 +154,7 @@ jobs:
         if: github.event_name == 'release'
         shell: bash
         run: |
-          zip -9vr ./source-pre-KB2533623.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*"
+          zip -9vr ./source-pre-KB2533623.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go"
 
       - name: Compute hashes for file
         if: github.event_name == 'release'
@@ -211,7 +211,7 @@ jobs:
         if: github.event_name == 'release'
         shell: bash
         run: |
-          zip -9vr ./source-pre-SP1.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*"
+          zip -9vr ./source-pre-SP1.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go"
 
       - name: Compute hashes for file
         if: github.event_name == 'release'

@@ -186,7 +186,7 @@ diff --git a/src/net/internal/socktest/sys_windows.go b/src/net/internal/socktes
 index 2f024460751b54..6f02d18b8ef60f 100644
 --- a/src/net/internal/socktest/sys_windows.go
 +++ b/src/net/internal/socktest/sys_windows.go
-@@ -4,41 +4,40 @@
+@@ -5,41 +5,40 @@
  package socktest
  
  import (
@@ -263,7 +263,7 @@ diff --git a/src/net/sock_windows.go b/src/net/sock_windows.go
 index a519909bb045c2..294fc140a38c06 100644
 --- a/src/net/sock_windows.go
 +++ b/src/net/sock_windows.go
-@@ -7,7 +7,6 @@
+@@ -5,7 +5,6 @@
  package net
  
  import (
@@ -271,7 +271,7 @@ index a519909bb045c2..294fc140a38c06 100644
  	"os"
  	"syscall"
  )
-@@ -20,8 +19,13 @@ func maxListenerBacklog() int {
+@@ -18,8 +17,13 @@ func maxListenerBacklog() int {
  }
  
  func sysSocket(family, sotype, proto int) (syscall.Handle, error) {
