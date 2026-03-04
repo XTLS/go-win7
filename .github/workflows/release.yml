@@ -87,7 +87,7 @@ jobs:
           curl -O https://raw.githubusercontent.com/XTLS/go-win7/refs/heads/build/LICENSE
 
       - name: Upload package to Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: go-for-win7-${{ env.ASSET_NAME }}
           path: |
@@ -144,7 +144,7 @@ jobs:
           curl -O https://raw.githubusercontent.com/XTLS/go-win7/refs/heads/build/LICENSE
 
       - name: Upload package to Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: source-pre-KB2533623
           path: |
@@ -201,7 +201,7 @@ jobs:
           curl -O https://raw.githubusercontent.com/XTLS/go-win7/refs/heads/build/LICENSE
 
       - name: Upload package to Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: source-pre-SP1
           path: |
