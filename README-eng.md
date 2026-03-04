@@ -93,6 +93,8 @@ These patches must be applied from up to down:
 
 #### Patches for Windows 7 / Windows Server 2008 R2
 
+##### NOTE: Due to changes and adjustments from upstream, 1.25.0-1.25.7 dost not share the same patch with 1.25.8 and onward. Below is a list of patches for 1.25.0-1.25.7.
+
 These patches must be applied from up to down:
 
 1. https://github.com/XTLS/go-win7/commit/0731a1bffeb285ee576629452e095bf833862b9b / [Git diff](https://github.com/XTLS/go-win7/commit/0731a1bffeb285ee576629452e095bf833862b9b.diff)

@@ -93,6 +93,8 @@
 
 #### 用于 Windows 7 / Windows Server 2008 R2 的补丁
 
+##### 注意：由于上游更改，1.25.0-1.25.7 与 1.25.8 及更新的版本不使用同一个补丁。以下为 1.25.0-1.25.7 使用的补丁列表。
+
 这些补丁必须按照从上到下的顺序来修补：
 
 1. https://github.com/XTLS/go-win7/commit/0731a1bffeb285ee576629452e095bf833862b9b / [Git diff](https://github.com/XTLS/go-win7/commit/0731a1bffeb285ee576629452e095bf833862b9b.diff)
