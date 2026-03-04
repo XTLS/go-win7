@@ -88,7 +88,7 @@ jobs:
           ls -al ./bin
 
       - name: Upload package to Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: go-for-win7-${{ env.ASSET_NAME }}
           path: |
@@ -115,7 +115,7 @@ jobs:
           curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://github.com/XTLS/go-win7/raw/refs/heads/build/pre-KB2533623-1-26.diff | patch --verbose -p 1
 
       - name: Upload package to Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: source-pre-KB2533623
           path: |
@@ -142,7 +142,7 @@ jobs:
           curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://github.com/XTLS/go-win7/raw/refs/heads/build/pre-SP1-1-26.diff | patch --verbose -p 1
 
       - name: Upload package to Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: source-pre-SP1
           path: |
