@@ -136,7 +136,7 @@ jobs:
       - name: Apply patch
         run: |
           curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://github.com/XTLS/go-win7/raw/refs/heads/build/unified-1-26-patch.diff | patch --verbose -p 1
-          curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://github.com/XTLS/go-win7/raw/refs/heads/build/pre-KB2533623-1-26.diff | patch --verbose -p 1
+          curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://github.com/XTLS/go-win7/raw/refs/heads/build/pre-KB3125574-1-26.diff | patch --verbose -p 1
 
       - name: Copy License
         run: |
@@ -146,7 +146,7 @@ jobs:
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: source-pre-KB2533623
+          name: source-pre-KB3125574
           path: |
             ./*
 
@@ -154,12 +154,12 @@ jobs:
         if: github.event_name == 'release'
         shell: bash
         run: |
-          zip -9vr ./source-pre-KB2533623.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go"
+          zip -9vr ./source-pre-KB3125574.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go"
 
       - name: Compute hashes for file
         if: github.event_name == 'release'
         run: |
-          FILE=./source-pre-KB2533623.zip
+          FILE=./source-pre-KB3125574.zip
           DGST=$FILE.dgst
           for METHOD in {"md5","sha1","sha256","sha512"}
           do
@@ -171,7 +171,7 @@ jobs:
         if: github.event_name == 'release'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./source-pre-KB2533623.zip*
+          file: ./source-pre-KB3125574.zip*
           tag: ${{ github.ref }}
           file_glob: true
 
