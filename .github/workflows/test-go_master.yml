@@ -90,7 +90,7 @@ jobs:
           path: |
             ./*
 
-  pre-llex:
+  pre-cr:
     runs-on: ubuntu-latest
     permissions:
       contents: write
