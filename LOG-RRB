@@ -19,3 +19,6 @@ Go 1.26
 2025-09-12
 2025-08-01 https://github.com/golang/go/commit/ef4054978692bd934eb575d0027c1c5476af9931 runtime,syscall: move loadlibrary and getprocaddress to syscall [related a17d959debdb04cd550016a3501dd09d50cd62e7] [partial affected]
 2025-09-12 https://github.com/golang/go/commit/889e71c2ac43f22dbd41c0b935acac2e778c8f87 runtime: move Windows types and consts to internal/runtime/syscall/windows [related 48042aa09c2f878c4faa576948b07fe625c4707a] [patch reconstruct needed]
+
+Go 1.27
+2026-03-24 https://github.com/golang/go/commit/341b5e2c0261cc059b157f1c7a2a2c4d1f417f0d cmd/link: raise minimum windows version to 10 [critical]

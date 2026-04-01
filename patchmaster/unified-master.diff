@@ -1,3 +1,18 @@
+diff --git a/src/cmd/link/internal/ld/pe.go b/src/cmd/link/internal/ld/pe.go
+index 3b97061aa07d0b..a2fe975cd8b20b 100644
+--- a/src/cmd/link/internal/ld/pe.go
++++ b/src/cmd/link/internal/ld/pe.go
+@@ -282,8 +282,8 @@ type IMAGE_LOAD_CONFIG_DIRECTORY64 struct {
+ }
+ 
+ const (
+-	PeMinimumTargetMajorVersion = 10
+-	PeMinimumTargetMinorVersion = 0
++	PeMinimumTargetMajorVersion = 6
++	PeMinimumTargetMinorVersion = 1
+ )
+ 
+ // DOS stub that prints out
 diff --git a/src/crypto/internal/sysrand/rand_windows.go b/src/crypto/internal/sysrand/rand_windows.go
 index 91f1490c15cda3..0c9f06787d0fb3 100644
 --- a/src/crypto/internal/sysrand/rand_windows.go
