@@ -97,7 +97,7 @@ jobs:
         if: github.event_name == 'release'
         shell: bash
         run: |
-          zip -9vr ./go-for-win7-${{ env.ASSET_NAME }}.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go"
+          zip -9vr ./go-for-win7-${{ env.ASSET_NAME }}.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go" "./**/testdata"
 
       - name: Compute hashes for file
         if: github.event_name == 'release'

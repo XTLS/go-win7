@@ -4,9 +4,37 @@ The Go SDK with patches that can run on Windows 7. Only reverted some modificati
 
 If you need other pre-built binaries that does not found in Release, you can fork and build it freely.
 
+## Compatibility
+
+For Go 1.22 - 1.26, the baseline of the compatibility is:
+
+- Windows 7
+- Windows Server 2008 R2
+
+Since Go 1.27, the baselines of the compatibility are:
+
+- Windows 7 SP1
+  - All updates from Windows Update released before April 2016;
+  - or install KB3020369 (minimum April 2015) + KB3125574
+- Windows Server 2008 R2
+  - All updates from Windows Update released before April 2016;
+  - or install KB3020369 (minimum April 2015) + KB3125574
+- Windows 8.1 with Update 3
+- Windows Server 2012 R2 with update
+
+The decision is based on both security concern and API mordernization. Even though the the updates metioned are the baselines, you still need to install additional updates to keep better functionality and security for the OS, especially SHA-2 support for Windows NT 6.1 and preventing EnternalBlue in wild for all OSes. Installing several key updates may also work, but compatibility may drift when upstream making changes.
+
 For detailed compatibility notes, you can find in the detailed ReadMe.
 
 Detailed ReadMe / 详细说明文件:
 
 - [English](./README-eng.md)
 - [中文（简体）](./README-zho-hans.md)
+
+## Supported version
+
+Current support status: 1.26.x (main), 1.25.x (check)
+
+Possible target: 1.30.x
+
+For more details, read #16 .
