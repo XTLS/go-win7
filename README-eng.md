@@ -23,16 +23,16 @@ Currently found these changes in Go SDK will stop running Windows 7:
 All running tests are under manual operation due to there are no runners based on Windows 7 and Windows 8 in Github Actions.
 
 Testing environment:
-- Windows 7 SP1 / Windows Server 2008 R2 SP1 (Build 7601.17514) (with KB3125574)
+- Windows 7 SP1 / Windows Server 2008 R2 SP1 (Build 7601.17514) (with KB3125574 and KB4474419)
 - Windows 8.1 Update 3 / Windows Server 2012 R2 with update (Build 9600.17514) (with no other updates installed)
 
 ### Compatibilities
 
 - **The binary executables compiled by this SDK can run normally on Windows 7 (and Windows 8.1). This is guaranteed during the maintenance of the project.** Contact us if there are issues when running these executables on Windows 7 & 8.1.
 - Since Go 1.27, the OS baseline for Windows 7 / Windows Server 2008 R2 changes to:
-  - **All updates from Windows Update released before April 2016;**
-  - **or install KB3020369 (minimum April 2015) + KB3125574**
-  - This change of system requirement is for both security and API modernization. **Installing additional updates is still required** for better security and system functionality, like update for SHA-2 signing support and update for blocking EternalBlue.
+  - **All updates from Windows Update released before April 2016 and KB4474419;**
+  - **or install KB3020369 (minimum April 2015) + KB3125574 and KB4474419 + KB4490628**
+  - This change of system requirement is for both security and API modernization. **Installing additional updates is still required** for better security and system functionality, like update for blocking EternalBlue.
   - *Only installing several key updates may also work, but compatibility may drift due to not-guaranteed upsteam changes.*
   - *If the system can run Chrome 109 normally, the SDK and binaries compiled from the SDK should be running normally.*
 - **Race Detector does not work on Windows 7 since Go 1.21.** This is a widespread problem which needs fixing for all Go 1.N (N>20). Due to the late report, and side-effects may occur after the fixing, this issue will not be fixed during the maintenance. Whether there are SDK releases with fixing on this issue after the sunsetting on the project needs discussions.
