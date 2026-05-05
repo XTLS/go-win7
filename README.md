@@ -1,6 +1,6 @@
-# Patched Go SDK for Windows 7
+# Patched Go SDK for Windows Server 2008 R2, Windows 7, Windows Server 2012, Windows Server 2012 R2 and Windows 8.1
 
-The Go SDK with patches that can run on Windows 7. Only reverted some modifications from [Go](https://github.com/golang/go).
+The Go SDK with patches that can run on **Windows Server 2008 R2 SP1 + Convenience Rollup**, **Windows 7 SP1 + Convenience Rollup**, **Windows Server 2012 SP2**, **Windows Server 2012 R2 with update**, and **Windows 8.1 with Update 3**. Only reverted some incompatible changes from [Go](https://github.com/golang/go).
 
 If you need other pre-built binaries that does not found in Release, you can fork and build it freely.
 
