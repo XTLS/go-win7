@@ -43,10 +43,18 @@ jobs:
         with:
           repository: 'golang/go'
           ref: ${{ matrix.buildtarget }}
+          path: 'go'
+
+      - name: Download patch
+        uses: actions/checkout@v6
+        with:
+          path: 'patch'
 
       - name: Apply patch
         run: |
-          curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://github.com/XTLS/go-win7/raw/refs/heads/build/patchmaster/unified-master.diff | patch --verbose -p 1
+          cd ./go
+          patch --verbose -p 1 < ../patch/patchmaster/unified-master.diff
+          cd ..
 
       - name: Set-up Go
         uses: actions/setup-go@v6
@@ -58,16 +66,16 @@ jobs:
       - name: Build patched Go
         shell: bash
         run: |
-          cd ./src
+          cd ./go/src
           . ./make.bash "$@" --no-banner
           ../bin/go tool dist banner
-          cd ..
+          cd ../..
 
       - name: Copy binaries into bin
         if: matrix.goos != 'linux' || matrix.goarch != 'amd64'
         shell: bash
         run: |
-          cd ./bin
+          cd ./go/bin
           DIR="${GOOS}_${GOARCH}"
           if [ -d "${DIR}" ]; then
             echo "Found ${DIR} copying binaries"
@@ -82,10 +90,11 @@ jobs:
           fi
           cd ..
           ls -al ./bin
+          cd ..
 
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v7
         with:
           name: go-for-win7-master-${{ env.ASSET_NAME }}
           path: |
-            ./*
+            ./go/*

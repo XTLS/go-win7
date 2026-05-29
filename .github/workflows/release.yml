@@ -41,31 +41,39 @@ jobs:
         with:
           repository: 'golang/go'
           ref: ${{ matrix.buildtarget }}
+          path: 'go'
+
+      - name: Download patch
+        uses: actions/checkout@v6
+        with:
+          path: 'patch'
 
       # Patches for Go 1.26.x before more minor changes introduces.
       - name: Apply patch
         run: |
-          curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://github.com/XTLS/go-win7/raw/refs/heads/build/unified-1-26-patch.diff | patch --verbose -p 1
+          cd ./go
+          patch --verbose -p 1 < ../patch/unified-1-26-patch.diff
+          cd ..
 
       - name: Set-up Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: 'src/go.mod'
+          go-version-file: 'go/src/go.mod'
           check-latest: true
 
       - name: Build patched Go
         shell: bash
         run: |
-          cd ./src
+          cd ./go/src
           . ./make.bash "$@" --no-banner
           ../bin/go tool dist banner
-          cd ..
+          cd ../..
 
       - name: Copy binaries into bin
         if: matrix.goos != 'linux' || matrix.goarch != 'amd64'
         shell: bash
         run: |
-          cd ./bin
+          cd ./go/bin
           DIR="${GOOS}_${GOARCH}"
           if [ -d "${DIR}" ]; then
             echo "Found ${DIR} copying binaries"
@@ -80,41 +88,45 @@ jobs:
           fi
           cd ..
           ls -al ./bin
+          cd ..
 
       - name: Copy License
         run: |
-          rm ./LICENSE
-          curl -O https://raw.githubusercontent.com/XTLS/go-win7/refs/heads/build/LICENSE
+          cp -f ./patch/LICENSE ./go/
 
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v7
         with:
           name: go-for-win7-${{ env.ASSET_NAME }}
           path: |
-            ./*
+            ./go/*
 
       - name: create ZIP archive
         if: github.event_name == 'release'
         shell: bash
         run: |
+          cd ./go/
           zip -9vr ./go-for-win7-${{ env.ASSET_NAME }}.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go" "./**/testdata"
+          cd ../
 
       - name: Compute hashes for file
         if: github.event_name == 'release'
         run: |
+          cd ./go/
           FILE=./go-for-win7-${{ env.ASSET_NAME }}.zip
           DGST=$FILE.dgst
           for METHOD in {"md5","sha1","sha256","sha512"}
           do
             openssl dgst -$METHOD $FILE | sed 's/([^)]*)//g' >>$DGST
           done
+          cd ../
 
       - name: Upload packages to release
         uses: svenstaro/upload-release-action@v2
         if: github.event_name == 'release'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./go-for-win7-${{ env.ASSET_NAME }}.zip*
+          file: ./go/go-for-win7-${{ env.ASSET_NAME }}.zip*
           tag: ${{ github.ref }}
           file_glob: true
 
@@ -132,46 +144,57 @@ jobs:
         with:
           repository: 'golang/go'
           ref: ${{ matrix.buildtarget }}
+          path: 'go'
+
+      - name: Download patch
+        uses: actions/checkout@v6
+        with:
+          path: 'patch'
 
       - name: Apply patch
         run: |
-          curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://github.com/XTLS/go-win7/raw/refs/heads/build/unified-1-26-patch.diff | patch --verbose -p 1
-          curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://github.com/XTLS/go-win7/raw/refs/heads/build/pre-KB3125574-1-26.diff | patch --verbose -p 1
+          cd ./go
+          patch --verbose -p 1 < ../patch/unified-1-26-patch.diff
+          patch --verbose -p 1 < ../patch/pre-KB3125574-1-26.diff
+          cd ..
 
       - name: Copy License
         run: |
-          rm ./LICENSE
-          curl -O https://raw.githubusercontent.com/XTLS/go-win7/refs/heads/build/LICENSE
+          cp -f ./patch/LICENSE ./go/
 
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v7
         with:
           name: source-pre-KB3125574
           path: |
-            ./*
+            ./go/*
 
       - name: create ZIP archive
         if: github.event_name == 'release'
         shell: bash
         run: |
+          cd ./go/
           zip -9vr ./source-pre-KB3125574.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go"
+          cd ..
 
       - name: Compute hashes for file
         if: github.event_name == 'release'
         run: |
+          cd ./go/
           FILE=./source-pre-KB3125574.zip
           DGST=$FILE.dgst
           for METHOD in {"md5","sha1","sha256","sha512"}
           do
             openssl dgst -$METHOD $FILE | sed 's/([^)]*)//g' >>$DGST
           done
+          cd ../
 
       - name: Upload packages to release
         uses: svenstaro/upload-release-action@v2
         if: github.event_name == 'release'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./source-pre-KB3125574.zip*
+          file: ./go/source-pre-KB3125574.zip*
           tag: ${{ github.ref }}
           file_glob: true
 
@@ -189,45 +212,56 @@ jobs:
         with:
           repository: 'golang/go'
           ref: ${{ matrix.buildtarget }}
+          path: 'go'
+
+      - name: Download patch
+        uses: actions/checkout@v6
+        with:
+          path: 'patch'
 
       - name: Apply patch
         run: |
-          curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://github.com/XTLS/go-win7/raw/refs/heads/build/unified-1-26-patch.diff | patch --verbose -p 1
-          curl -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://github.com/XTLS/go-win7/raw/refs/heads/build/pre-SP1-1-26.diff | patch --verbose -p 1
+          cd ./go
+          patch --verbose -p 1 < ../patch/unified-1-26-patch.diff
+          patch --verbose -p 1 < ../patch/pre-SP1-1-26.diff
+          cd ..
 
       - name: Copy License
         run: |
-          rm ./LICENSE
-          curl -O https://raw.githubusercontent.com/XTLS/go-win7/refs/heads/build/LICENSE
+          cp -f ./patch/LICENSE ./go/
 
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v7
         with:
           name: source-pre-SP1
           path: |
-            ./*
+            ./go/*
 
       - name: create ZIP archive
         if: github.event_name == 'release'
         shell: bash
         run: |
+          cd ./go/
           zip -9vr ./source-pre-SP1.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go"
+          cd ../
 
       - name: Compute hashes for file
         if: github.event_name == 'release'
         run: |
+          cd ./go/
           FILE=./source-pre-SP1.zip
           DGST=$FILE.dgst
           for METHOD in {"md5","sha1","sha256","sha512"}
           do
             openssl dgst -$METHOD $FILE | sed 's/([^)]*)//g' >>$DGST
           done
+          cd ../
 
       - name: Upload packages to release
         uses: svenstaro/upload-release-action@v2
         if: github.event_name == 'release'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./source-pre-SP1.zip*
+          file: ./go/source-pre-SP1.zip*
           tag: ${{ github.ref }}
           file_glob: true
