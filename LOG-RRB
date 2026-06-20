@@ -1,12 +1,15 @@
 Go 1.21
 2023-01-25 https://github.com/golang/go/commit/cc82867f6bf650e6b48a6e87849e4fdd5b94ef70 runtime/race: update race_windows_amd64.syso [affected] [not main function] [wontfix]
-2023-01-31 https://github.com/golang/go/commit/a17d959debdb04cd550016a3501dd09d50cd62e7 runtime: always use LoadLibraryEx to load system libraries [affected]
+2023-01-31 https://github.com/golang/go/commit/a17d959debdb04cd550016a3501dd09d50cd62e7 runtime: always use LoadLibraryEx to load system libraries [legacy] [affected]
 
 Go 1.22
-2023-07-20 https://github.com/golang/go/commit/7c1157f9544922e96945196b47b95664b1e39108 net: remove sysSocket fallback for Windows 7 [affected]
+2023-07-20 https://github.com/golang/go/commit/7c1157f9544922e96945196b47b95664b1e39108 net: remove sysSocket fallback for Windows 7 [legacy] [affected]
 2023-07-26 https://github.com/golang/go/commit/f0894a00f4b756d4b9b4078af2e686b359493583 os: remove 5ms sleep on Windows in (*Process).Wait [minor]
 2023-09-27 https://github.com/golang/go/commit/48042aa09c2f878c4faa576948b07fe625c4707a syscall: remove Windows 7 console handle workaround [affected]
 2023-10-20 https://github.com/golang/go/commit/693def151adff1af707d82d28f55dba81ceb08e1 crypto/rand,runtime: switch RtlGenRandom for ProcessPrng [critical]
+
+Go 1.23
+2024-03-21 https://github.com/golang/go/commit/cff7267e0d77f02d582c613c272b6f8ebf1c0412 cmd/internal/osinfo,runtime,syscall: use RtlGetVersion instead of RtlGetNtVersionNumbers [related 48042aa09c2f878c4faa576948b07fe625c4707a] [patch reconstruct needed]
 
 Go 1.24
 2024-10-07 https://github.com/golang/go/commit/534d6a1a9c81b25bdad1052e736b2f072caa3903 crypto/rand: prevent Read argument from escaping to heap [related 693def151adff1af707d82d28f55dba81ceb08e1] [minor]
@@ -16,9 +19,8 @@ Go 1.25
 2025-05-21 https://github.com/golang/go/commit/896097000912761dbd31cead2bec99f17534f521 os: add Root.RemoveAll [related 6d418096b2dfe2a2e47b7aa83b46748fb301e6cb] [affected]
 
 Go 1.26
-2025-09-12
 2025-08-01 https://github.com/golang/go/commit/ef4054978692bd934eb575d0027c1c5476af9931 runtime,syscall: move loadlibrary and getprocaddress to syscall [related a17d959debdb04cd550016a3501dd09d50cd62e7] [partial affected]
-2025-09-12 https://github.com/golang/go/commit/889e71c2ac43f22dbd41c0b935acac2e778c8f87 runtime: move Windows types and consts to internal/runtime/syscall/windows [related 48042aa09c2f878c4faa576948b07fe625c4707a] [patch reconstruct needed]
+2025-09-12 https://github.com/golang/go/commit/889e71c2ac43f22dbd41c0b935acac2e778c8f87 runtime: move Windows types and consts to internal/runtime/syscall/windows [related cff7267e0d77f02d582c613c272b6f8ebf1c0412] [patch reconstruct needed]
 
 Go 1.27
 2026-03-24 https://github.com/golang/go/commit/341b5e2c0261cc059b157f1c7a2a2c4d1f417f0d cmd/link: raise minimum windows version to 10 [critical]

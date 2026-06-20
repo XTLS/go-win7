@@ -1,0 +1,104 @@
+name: Build patched Go 1.27 for tests
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 0 * * 6'
+  push:
+    branches:
+      - build
+      - "release-branch.go1.27"
+    paths:
+      - ".github/workflows/test-go1_27.yml"
+      - "**/*.go"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - build
+      - "release-branch.go1.27"
+    paths:
+      - ".github/workflows/test-go1_27.yml"
+      - "**/*.go"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        goos: [windows]
+        goarch: [amd64, 386]
+        buildtarget: ['release-branch.go1.27']
+      fail-fast: false
+    env:
+      GOOS: ${{ matrix.goos }}
+      GOARCH: ${{ matrix.goarch }}
+      CGO_ENABLED: 0
+    steps:
+      - name: Show workflow information
+        run: |
+          _NAME="$GOOS-$GOARCH"
+          echo "GOOS: $GOOS, GOARCH: $GOARCH, APPLY-BRANCH: ${{ matrix.buildtarget }}"
+          echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
+
+      - name: Download source
+        uses: actions/checkout@v6
+        with:
+          repository: 'golang/go'
+          ref: ${{ matrix.buildtarget }}
+          path: 'go'
+
+      - name: Download patch
+        uses: actions/checkout@v6
+        with:
+          path: 'patch'
+
+      # Patches for Go 1.27.x before more minor changes introduces.
+      - name: Apply patch
+        run: |
+          cd ./go
+          patch --verbose -p 1 < ../patch/unified-1-27-patch.diff
+          cd ..
+
+      - name: Set-up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go/src/go.mod'
+          check-latest: true
+
+      - name: Build patched Go
+        shell: bash
+        run: |
+          cd ./go/src
+          . ./make.bash "$@" --no-banner
+          ../bin/go tool dist banner
+          cd ../..
+
+      - name: Copy binaries into bin
+        if: matrix.goos != 'linux' || matrix.goarch != 'amd64'
+        shell: bash
+        run: |
+          cd ./go/bin
+          DIR="${GOOS}_${GOARCH}"
+          if [ -d "${DIR}" ]; then
+            echo "Found ${DIR} copying binaries"
+            rm ./go*
+            for BINARY in "${DIR}"/*
+            do
+              echo "mv ./${BINARY} ./"
+              mv ./${BINARY} ./
+            done
+            rm -r ./"${DIR}"
+            rm -r ../pkg/tool/linux_amd64/
+          fi
+          cd ..
+          ls -al ./bin
+          cd ..
+
+      - name: Upload package to Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: go-for-win7-${{ env.ASSET_NAME }}
+          path: |
+            ./go/*
