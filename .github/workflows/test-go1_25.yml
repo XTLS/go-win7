@@ -7,18 +7,14 @@ on:
   push:
     branches:
       - build
-      - "release-branch.go1.25"
     paths:
       - ".github/workflows/test-go1_25.yml"
-      - "**/*.go"
   pull_request:
     types: [opened, synchronize, reopened]
     branches:
       - build
-      - "release-branch.go1.25"
     paths:
       - ".github/workflows/test-go1_25.yml"
-      - "**/*.go"
 
 jobs:
   build:
@@ -100,5 +96,35 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: go-for-win7-${{ env.ASSET_NAME }}
+          path: |
+            ./go/*
+
+  source:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download source
+        uses: actions/checkout@v6
+        with:
+          repository: 'golang/go'
+          ref: 'release-branch.go1.25'
+          path: 'go'
+
+      - name: Download patch
+        uses: actions/checkout@v6
+        with:
+          path: 'patch'
+
+      - name: Apply patch
+        run: |
+          cd ./go
+          patch --verbose -p 1 < ../patch/unified-1-25-patch.diff
+          cd ..
+
+      - name: Upload package to Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: go-for-win7-source
           path: |
             ./go/*

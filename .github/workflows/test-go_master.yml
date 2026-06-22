@@ -98,3 +98,33 @@ jobs:
           name: go-for-win7-master-${{ env.ASSET_NAME }}
           path: |
             ./go/*
+
+  source:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download source
+        uses: actions/checkout@v6
+        with:
+          repository: 'golang/go'
+          ref: 'master'
+          path: 'go'
+
+      - name: Download patch
+        uses: actions/checkout@v6
+        with:
+          path: 'patch'
+
+      - name: Apply patch
+        run: |
+          cd ./go
+          patch --verbose -p 1 < ../patch/patchmaster/unified-master.diff
+          cd ..
+
+      - name: Upload package to Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: go-for-win7-master-source
+          path: |
+            ./go/*
