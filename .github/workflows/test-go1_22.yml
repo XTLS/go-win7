@@ -39,14 +39,14 @@ jobs:
           echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
 
       - name: Download source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: 'golang/go'
           ref: ${{ matrix.buildtarget }}
           path: 'go'
 
       - name: Download patch
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: 'patch'
 
@@ -105,14 +105,14 @@ jobs:
       contents: write
     steps:
       - name: Download source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: 'golang/go'
           ref: 'release-branch.go1.22'
           path: 'go'
 
       - name: Download patch
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: 'patch'
 
