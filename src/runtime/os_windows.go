@@ -127,8 +127,8 @@ var (
 	_AddVectoredContinueHandler,
 	_ stdFunction
 
-	// Use ProcessPrng to generate cryptographically random data.
-	_ProcessPrng stdFunction
+	// Use BCryptGenRnadom to generate cryptographically random data.
+	_BCryptGenRandom stdFunction
 
 	// Load ntdll.dll manually during startup, otherwise Mingw
 	// links wrong printf function to cgo executable (see issue
@@ -144,12 +144,12 @@ var (
 )
 
 var (
-	bcryptprimitivesdll = [...]uint16{'b', 'c', 'r', 'y', 'p', 't', 'p', 'r', 'i', 'm', 'i', 't', 'i', 'v', 'e', 's', '.', 'd', 'l', 'l', 0}
-	kernel32dll         = [...]uint16{'k', 'e', 'r', 'n', 'e', 'l', '3', '2', '.', 'd', 'l', 'l', 0}
-	ntdlldll            = [...]uint16{'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l', 0}
-	powrprofdll         = [...]uint16{'p', 'o', 'w', 'r', 'p', 'r', 'o', 'f', '.', 'd', 'l', 'l', 0}
-	winmmdll            = [...]uint16{'w', 'i', 'n', 'm', 'm', '.', 'd', 'l', 'l', 0}
-	ws2_32dll           = [...]uint16{'w', 's', '2', '_', '3', '2', '.', 'd', 'l', 'l', 0}
+	bcryptdll   = [...]uint16{'b', 'c', 'r', 'y', 'p', 't', '.', 'd', 'l', 'l', 0}
+	kernel32dll = [...]uint16{'k', 'e', 'r', 'n', 'e', 'l', '3', '2', '.', 'd', 'l', 'l', 0}
+	ntdlldll    = [...]uint16{'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l', 0}
+	powrprofdll = [...]uint16{'p', 'o', 'w', 'r', 'p', 'r', 'o', 'f', '.', 'd', 'l', 'l', 0}
+	winmmdll    = [...]uint16{'w', 'i', 'n', 'm', 'm', '.', 'd', 'l', 'l', 0}
+	ws2_32dll   = [...]uint16{'w', 's', '2', '_', '3', '2', '.', 'd', 'l', 'l', 0}
 )
 
 // Function to be called by windows CreateThread
@@ -248,11 +248,11 @@ func loadOptionalSyscalls() {
 	}
 	_AddVectoredContinueHandler = windowsFindfunc(k32, []byte("AddVectoredContinueHandler\000"))
 
-	bcryptPrimitives := windowsLoadSystemLib(bcryptprimitivesdll[:])
-	if bcryptPrimitives == 0 {
-		throw("bcryptprimitives.dll not found")
+	bcrypt := windowsLoadSystemLib(bcryptdll[:])
+	if bcrypt == 0 {
+		throw("bcrypt.dll not found")
 	}
-	_ProcessPrng = windowsFindfunc(bcryptPrimitives, []byte("ProcessPrng\000"))
+	_BCryptGenRandom = windowsFindfunc(bcrypt, []byte("BCryptGenRandom\000"))
 
 	n32 := windowsLoadSystemLib(ntdlldll[:])
 	if n32 == 0 {
@@ -561,7 +561,11 @@ func initWine(k32 uintptr) {
 //go:nosplit
 func getRandomData(r []byte) {
 	n := 0
-	if stdcall2(_ProcessPrng, uintptr(unsafe.Pointer(&r[0])), uintptr(len(r)))&0xff != 0 {
+	const (
+		hAlgorithm                      = 0x0
+		BCRYPT_USE_SYSTEM_PREFERRED_RNG = 0x00000002
+	)
+	if stdcall4(_BCryptGenRandom, uintptr(hAlgorithm), uintptr(unsafe.Pointer(&r[0])), uintptr(uint32(len(r))), uintptr(BCRYPT_USE_SYSTEM_PREFERRED_RNG)) == 0x00000000 {
 		n = len(r)
 	}
 	extendRandom(r, n)
