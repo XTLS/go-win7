@@ -44,7 +44,7 @@ func Syscall18(trap, nargs, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a
 
 func SyscallN(trap uintptr, args ...uintptr) (r1, r2 uintptr, err Errno)
 func loadlibrary(filename *uint16) (handle uintptr, err Errno)
-func loadsystemlibrary(filename *uint16) (handle uintptr, err Errno)
+func loadsystemlibrary(filename *uint16, absoluteFilepath *uint16) (handle uintptr, err Errno)
 func getprocaddress(handle uintptr, procname *uint8) (proc uintptr, err Errno)
 
 // A DLL implements access to a single DLL.
@@ -52,6 +52,9 @@ type DLL struct {
 	Name   string
 	Handle Handle
 }
+
+//go:linkname getSystemDirectory
+func getSystemDirectory() string // Implemented in runtime package.
 
 // LoadDLL loads the named DLL file into memory.
 //
@@ -69,7 +72,11 @@ func LoadDLL(name string) (*DLL, error) {
 	var h uintptr
 	var e Errno
 	if sysdll.IsSystemDLL[name] {
-		h, e = loadsystemlibrary(namep)
+		absoluteFilepathp, err := UTF16PtrFromString(getSystemDirectory() + name)
+		if err != nil {
+			return nil, err
+		}
+		h, e = loadsystemlibrary(namep, absoluteFilepathp)
 	} else {
 		h, e = loadlibrary(namep)
 	}
