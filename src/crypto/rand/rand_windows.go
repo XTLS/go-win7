@@ -16,7 +16,10 @@ func init() { Reader = &rngReader{} }
 type rngReader struct{}
 
 func (r *rngReader) Read(b []byte) (int, error) {
-	if err := windows.ProcessPrng(b); err != nil {
+	// BCryptGenRandom only returns 1<<32-1 bytes at a time. We only read at
+	// most 1<<31-1 bytes at a time so that  this works the same on 32-bit
+	// and 64-bit systems.
+	if err := batched(windows.BCryptGenRandom, 1<<31-1)(b); err != nil {
 		return 0, err
 	}
 	return len(b), nil
