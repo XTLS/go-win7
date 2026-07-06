@@ -135,7 +135,6 @@ var (
 	_NtCreateWaitCompletionPacket    stdFunction
 	_NtAssociateWaitCompletionPacket stdFunction
 	_NtCancelWaitCompletionPacket    stdFunction
-	_RtlGetCurrentPeb                stdFunction
 	_RtlGetVersion                   stdFunction
 
 	// These are from non-kernel32.dll, so we prefer to LoadLibraryEx them.
@@ -284,7 +283,6 @@ func loadOptionalSyscalls() {
 			throw("NtCreateWaitCompletionPacket exists but NtCancelWaitCompletionPacket does not")
 		}
 	}
-	_RtlGetCurrentPeb = windowsFindfunc(n32, []byte("RtlGetCurrentPeb\000"))
 	_RtlGetVersion = windowsFindfunc(n32, []byte("RtlGetVersion\000"))
 }
 
@@ -436,26 +434,7 @@ var canUseLongPaths bool
 
 // initLongPathSupport enables long path support.
 func initLongPathSupport() {
-	const (
-		IsLongPathAwareProcess = 0x80
-		PebBitFieldOffset      = 3
-	)
-
-	// Check that we're ≥ 10.0.15063.
-	info := windows.OSVERSIONINFOW{}
-	info.OSVersionInfoSize = uint32(unsafe.Sizeof(info))
-	stdcall(_RtlGetVersion, uintptr(unsafe.Pointer(&info)))
-	if info.MajorVersion < 10 || (info.MajorVersion == 10 && info.MinorVersion == 0 && info.BuildNumber < 15063) {
-		return
-	}
-
-	// Set the IsLongPathAwareProcess flag of the PEB's bit field.
-	// This flag is not documented, but it's known to be used
-	// by Windows to enable long path support.
-	bitField := (*byte)(unsafe.Pointer(stdcall(_RtlGetCurrentPeb) + PebBitFieldOffset))
-	*bitField |= IsLongPathAwareProcess
-
-	canUseLongPaths = true
+	canUseLongPaths = false
 }
 
 func osinit() {
