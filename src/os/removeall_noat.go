@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//go:build (js && wasm) || plan9
+//go:build (js && wasm) || plan9 || windows
 
 package os
 
@@ -139,4 +139,23 @@ func removeAll(path string) error {
 		err = err1
 	}
 	return err
+}
+
+func rootRemoveAll(r *Root, name string) error {
+	if endsWithDot(name) {
+		// Consistency with os.RemoveAll: Return EINVAL when trying to remove .
+		return &PathError{Op: "RemoveAll", Path: name, Err: syscall.EINVAL}
+	}
+	if err := checkPathEscapesLstat(r, name); err != nil {
+		if err == syscall.ENOTDIR {
+			// Some intermediate path component is not a directory.
+			// RemoveAll treats this as success (since the target doesn't exist).
+			return nil
+		}
+		return &PathError{Op: "RemoveAll", Path: name, Err: err}
+	}
+	if err := RemoveAll(joinPath(r.root.name, name)); err != nil {
+		return &PathError{Op: "RemoveAll", Path: name, Err: underlyingError(err)}
+	}
+	return nil
 }
