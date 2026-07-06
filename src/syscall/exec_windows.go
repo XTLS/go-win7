@@ -15,7 +15,6 @@ import (
 	"unsafe"
 )
 
-// ForkLock is not used on Windows.
 var ForkLock sync.RWMutex
 
 // EscapeArg rewrites command line argument s as prescribed
