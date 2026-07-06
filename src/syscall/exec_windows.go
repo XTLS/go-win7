@@ -304,6 +304,9 @@ type SysProcAttr struct {
 var zeroProcAttr ProcAttr
 var zeroSysProcAttr SysProcAttr
 
+//go:linkname getNtVersionInfo
+func getNtVersionInfo() (uint32, uint32, uint32)
+
 func StartProcess(argv0 string, argv []string, attr *ProcAttr) (pid int, handle uintptr, err error) {
 	if len(argv0) == 0 {
 		return 0, 0, EWINDOWS
@@ -367,6 +370,16 @@ func StartProcess(argv0 string, argv []string, attr *ProcAttr) (pid int, handle 
 		}
 	}
 
+	maj, min, build := getNtVersionInfo()
+	isWindowsLegacy := (maj < 6) || (maj == 6 && min <= 1 && build <= 7602)
+	// NT kernel handles are divisible by 4, with the bottom 3 bits left as
+	// a tag. The fully set tag correlates with the types of handles we're
+	// concerned about here.  Except, the kernel will interpret some
+	// special handle values, like -1, -2, and so forth, so kernelbase.dll
+	// checks to see that those bottom three bits are checked, but that top
+	// bit is not checked.
+	isLegacyWindowsConsoleHandle := func(handle Handle) bool { return isWindowsLegacy && handle&0x10000003 == 3 }
+
 	p, _ := GetCurrentProcess()
 	parentProcess := p
 	if sys.ParentProcess != 0 {
@@ -375,7 +388,15 @@ func StartProcess(argv0 string, argv []string, attr *ProcAttr) (pid int, handle 
 	fd := make([]Handle, len(attr.Files))
 	for i := range attr.Files {
 		if attr.Files[i] > 0 {
-			err := DuplicateHandle(p, Handle(attr.Files[i]), parentProcess, &fd[i], 0, true, DUPLICATE_SAME_ACCESS)
+			destinationProcessHandle := parentProcess
+
+			// On Legacy Windows, console handles aren't real handles, and can only be duplicated
+			// into the current process, not a parent one, which amounts to the same thing.
+			if parentProcess != p && isLegacyWindowsConsoleHandle(Handle(attr.Files[i])) {
+				destinationProcessHandle = p
+			}
+
+			err := DuplicateHandle(p, Handle(attr.Files[i]), destinationProcessHandle, &fd[i], 0, true, DUPLICATE_SAME_ACCESS)
 			if err != nil {
 				return 0, 0, err
 			}
@@ -405,6 +426,14 @@ func StartProcess(argv0 string, argv []string, attr *ProcAttr) (pid int, handle 
 	si.StdErr = fd[2]
 
 	fd = append(fd, sys.AdditionalInheritedHandles...)
+
+	// On Legacy Windows, console handles aren't real handles, so don't pass them
+	// through to PROC_THREAD_ATTRIBUTE_HANDLE_LIST.
+	for i := range fd {
+		if isLegacyWindowsConsoleHandle(fd[i]) {
+			fd[i] = 0
+		}
+	}
 
 	// The presence of a NULL handle in the list is enough to cause PROC_THREAD_ATTRIBUTE_HANDLE_LIST
 	// to treat the entire list as empty, so remove NULL handles.
