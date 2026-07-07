@@ -54,7 +54,7 @@ jobs:
       - name: Apply patch
         run: |
           cd ./go
-          patch --verbose -p 1 < ../patch/unified-1-21-patch.diff
+          patch --verbose -p 1 < ../patch/go-1-21.diff
           cd ..
 
       - name: Set-up Go
@@ -119,7 +119,7 @@ jobs:
       - name: Apply patch
         run: |
           cd ./go
-          patch --verbose -p 1 < ../patch/unified-1-21-patch.diff
+          patch --verbose -p 1 < ../patch/go-1-21.diff
           cd ..
 
       - name: Upload package to Artifacts
