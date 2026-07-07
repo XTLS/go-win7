@@ -1,0 +1,216 @@
+diff --git a/src/crypto/rand/rand.go b/src/crypto/rand/rand.go
+index d0dcc7cc71fc0c..ef94229296be93 100644
+--- a/src/crypto/rand/rand.go
++++ b/src/crypto/rand/rand.go
+@@ -15,7 +15,7 @@ import "io"
+ // available, /dev/urandom otherwise.
+ // On OpenBSD and macOS, Reader uses getentropy(2).
+ // On other Unix-like systems, Reader reads from /dev/urandom.
+-// On Windows systems, Reader uses the RtlGenRandom API.
++// On Windows systems, Reader uses the BCryptGenRandom API.
+ // On JS/Wasm, Reader uses the Web Crypto API.
+ // On WASIP1/Wasm, Reader uses random_get from wasi_snapshot_preview1.
+ var Reader io.Reader
+diff --git a/src/crypto/rand/rand_windows.go b/src/crypto/rand/rand_windows.go
+index 7380f1f0f1e6e6..d991d74dfb0f58 100644
+--- a/src/crypto/rand/rand_windows.go
++++ b/src/crypto/rand/rand_windows.go
+@@ -15,11 +15,11 @@ func init() { Reader = &rngReader{} }
+ 
+ type rngReader struct{}
+ 
+-func (r *rngReader) Read(b []byte) (n int, err error) {
+-	// RtlGenRandom only returns 1<<32-1 bytes at a time. We only read at
++func (r *rngReader) Read(b []byte) (int, error) {
++	// BCryptGenRandom only returns 1<<32-1 bytes at a time. We only read at
+ 	// most 1<<31-1 bytes at a time so that  this works the same on 32-bit
+ 	// and 64-bit systems.
+-	if err := batched(windows.RtlGenRandom, 1<<31-1)(b); err != nil {
++	if err := batched(windows.BCryptGenRandom, 1<<31-1)(b); err != nil {
+ 		return 0, err
+ 	}
+ 	return len(b), nil
+diff --git a/src/internal/syscall/windows/syscall_windows.go b/src/internal/syscall/windows/syscall_windows.go
+index ab2f9a1ad2c957..ba2ecf8426ee38 100644
+--- a/src/internal/syscall/windows/syscall_windows.go
++++ b/src/internal/syscall/windows/syscall_windows.go
+@@ -373,7 +373,7 @@ func ErrorLoadingGetTempPath2() error {
+ //sys	DestroyEnvironmentBlock(block *uint16) (err error) = userenv.DestroyEnvironmentBlock
+ //sys	CreateEvent(eventAttrs *SecurityAttributes, manualReset uint32, initialState uint32, name *uint16) (handle syscall.Handle, err error) = kernel32.CreateEventW
+ 
+-//sys	RtlGenRandom(buf []byte) (err error) = advapi32.SystemFunction036
++//sys	BCryptGenRandom(buf []byte) (err error) = bcrypt.BCryptGenRandom
+ 
+ //sys	RtlLookupFunctionEntry(pc uintptr, baseAddress *uintptr, table *byte) (ret uintptr) = kernel32.RtlLookupFunctionEntry
+ //sys	RtlVirtualUnwind(handlerType uint32, baseAddress uintptr, pc uintptr, entry uintptr, ctxt uintptr, data *uintptr, frame *uintptr, ctxptrs *byte) (ret uintptr) = kernel32.RtlVirtualUnwind
+diff --git a/src/internal/syscall/windows/zsyscall_windows.go b/src/internal/syscall/windows/zsyscall_windows.go
+index 6be7aa470b656c..155e10a224a132 100644
+--- a/src/internal/syscall/windows/zsyscall_windows.go
++++ b/src/internal/syscall/windows/zsyscall_windows.go
+@@ -38,6 +38,7 @@ func errnoErr(e syscall.Errno) error {
+ 
+ var (
+	modadvapi32 = syscall.NewLazyDLL(sysdll.Add("advapi32.dll"))
++	modbcrypt   = syscall.NewLazyDLL(sysdll.Add("bcrypt.dll"))
+	modiphlpapi = syscall.NewLazyDLL(sysdll.Add("iphlpapi.dll"))
+	modkernel32 = syscall.NewLazyDLL(sysdll.Add("kernel32.dll"))
+	modnetapi32 = syscall.NewLazyDLL(sysdll.Add("netapi32.dll"))
+@@ -52,7 +53,7 @@ var (
+ 	procOpenThreadToken              = modadvapi32.NewProc("OpenThreadToken")
+ 	procRevertToSelf                 = modadvapi32.NewProc("RevertToSelf")
+ 	procSetTokenInformation          = modadvapi32.NewProc("SetTokenInformation")
+-	procSystemFunction036            = modadvapi32.NewProc("SystemFunction036")
++	procBCryptGenRandom              = modbcrypt.NewProc("BCryptGenRandom")
+ 	procGetAdaptersAddresses         = modiphlpapi.NewProc("GetAdaptersAddresses")
+ 	procCreateEventW                 = modkernel32.NewProc("CreateEventW")
+ 	procGetACP                       = modkernel32.NewProc("GetACP")
+@@ -148,13 +149,17 @@ func SetTokenInformation(tokenHandle syscall.Token, tokenInformationClass uint32
+ 	return
+ }
+ 
+-func RtlGenRandom(buf []byte) (err error) {
++func BCryptGenRandom(buf []byte) (err error) {
+ 	var _p0 *byte
++	const (
++		hAlgorithm                      = 0x0
++		BCRYPT_USE_SYSTEM_PREFERRED_RNG = 0x00000002
++	)
+ 	if len(buf) > 0 {
+ 		_p0 = &buf[0]
+ 	}
+-	r1, _, e1 := syscall.Syscall(procSystemFunction036.Addr(), 2, uintptr(unsafe.Pointer(_p0)), uintptr(len(buf)), 0)
+-	if r1 == 0 {
++	r1, _, e1 := syscall.SyscallN(procBCryptGenRandom.Addr(), uintptr(hAlgorithm), uintptr(unsafe.Pointer(_p0)), uintptr(uint32(len(buf))), uintptr(BCRYPT_USE_SYSTEM_PREFERRED_RNG))
++	if r1 != 0 {
+ 		err = errnoErr(e1)
+ 	}
+ 	return
+diff --git a/src/runtime/os_windows.go b/src/runtime/os_windows.go
+index 735a905b6161ac..a1279dfa7649aa 100644
+--- a/src/runtime/os_windows.go
++++ b/src/runtime/os_windows.go
+@@ -127,21 +127,13 @@ var (
+ 	_AddVectoredContinueHandler,
+ 	_ stdFunction
+ 
+-	// Use RtlGenRandom to generate cryptographically random data.
+-	// This approach has been recommended by Microsoft (see issue
+-	// 15589 for details).
+-	// The RtlGenRandom is not listed in advapi32.dll, instead
+-	// RtlGenRandom function can be found by searching for SystemFunction036.
+-	// Also some versions of Mingw cannot link to SystemFunction036
+-	// when building executable as Cgo. So load SystemFunction036
+-	// manually during runtime startup.
+-	_RtlGenRandom stdFunction
++	// Use BCryptGenRnadom to generate cryptographically random data.
++	_BCryptGenRandom stdFunction
+ 
+ 	// Load ntdll.dll manually during startup, otherwise Mingw
+ 	// links wrong printf function to cgo executable (see issue
+ 	// 12030 for details).
+ 	_NtWaitForSingleObject  stdFunction
+-	_RtlGetCurrentPeb       stdFunction
+ 	_RtlGetNtVersionNumbers stdFunction
+ 
+ 	// These are from non-kernel32.dll, so we prefer to LoadLibraryEx them.
+@@ -152,7 +144,7 @@ var (
+ )
+ 
+ var (
+-	advapi32dll = [...]uint16{'a', 'd', 'v', 'a', 'p', 'i', '3', '2', '.', 'd', 'l', 'l', 0}
++	bcryptdll   = [...]uint16{'b', 'c', 'r', 'y', 'p', 't', '.', 'd', 'l', 'l', 0}
+ 	kernel32dll = [...]uint16{'k', 'e', 'r', 'n', 'e', 'l', '3', '2', '.', 'd', 'l', 'l', 0}
+ 	ntdlldll    = [...]uint16{'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l', 0}
+ 	powrprofdll = [...]uint16{'p', 'o', 'w', 'r', 'p', 'r', 'o', 'f', '.', 'd', 'l', 'l', 0}
+@@ -256,18 +248,17 @@ func loadOptionalSyscalls() {
+ 	}
+ 	_AddVectoredContinueHandler = windowsFindfunc(k32, []byte("AddVectoredContinueHandler\000"))
+ 
+-	a32 := windowsLoadSystemLib(advapi32dll[:])
+-	if a32 == 0 {
+-		throw("advapi32.dll not found")
++	bcrypt := windowsLoadSystemLib(bcryptdll[:])
++	if bcrypt == 0 {
++		throw("bcrypt.dll not found")
+ 	}
+-	_RtlGenRandom = windowsFindfunc(a32, []byte("SystemFunction036\000"))
++	_BCryptGenRandom = windowsFindfunc(bcrypt, []byte("BCryptGenRandom\000"))
+ 
+ 	n32 := windowsLoadSystemLib(ntdlldll[:])
+ 	if n32 == 0 {
+ 		throw("ntdll.dll not found")
+ 	}
+ 	_NtWaitForSingleObject = windowsFindfunc(n32, []byte("NtWaitForSingleObject\000"))
+-	_RtlGetCurrentPeb = windowsFindfunc(n32, []byte("RtlGetCurrentPeb\000"))
+ 	_RtlGetNtVersionNumbers = windowsFindfunc(n32, []byte("RtlGetNtVersionNumbers\000"))
+ 
+ 	if !haveCputicksAsm {
+@@ -468,54 +457,7 @@ var longFileName [(_MAX_PATH+1)*2 + 1]byte
+ // canUseLongPaths is set to true, and later when called, os.fixLongPath
+ // returns early without doing work.
+ func initLongPathSupport() {
+-	const (
+-		IsLongPathAwareProcess = 0x80
+-		PebBitFieldOffset      = 3
+-		OPEN_EXISTING          = 3
+-		ERROR_PATH_NOT_FOUND   = 3
+-	)
+-
+-	// Check that we're ≥ 10.0.15063.
+-	var maj, min, build uint32
+-	stdcall3(_RtlGetNtVersionNumbers, uintptr(unsafe.Pointer(&maj)), uintptr(unsafe.Pointer(&min)), uintptr(unsafe.Pointer(&build)))
+-	if maj < 10 || (maj == 10 && min == 0 && build&0xffff < 15063) {
+-		return
+-	}
+-
+-	// Set the IsLongPathAwareProcess flag of the PEB's bit field.
+-	bitField := (*byte)(unsafe.Pointer(stdcall0(_RtlGetCurrentPeb) + PebBitFieldOffset))
+-	originalBitField := *bitField
+-	*bitField |= IsLongPathAwareProcess
+-
+-	// Check that this actually has an effect, by constructing a large file
+-	// path and seeing whether we get ERROR_PATH_NOT_FOUND, rather than
+-	// some other error, which would indicate the path is too long, and
+-	// hence long path support is not successful. This whole section is NOT
+-	// strictly necessary, but is a nice validity check for the near to
+-	// medium term, when this functionality is still relatively new in
+-	// Windows.
+-	getRandomData(longFileName[len(longFileName)-33 : len(longFileName)-1])
+-	start := copy(longFileName[:], sysDirectory[:sysDirectoryLen])
+-	const dig = "0123456789abcdef"
+-	for i := 0; i < 32; i++ {
+-		longFileName[start+i*2] = dig[longFileName[len(longFileName)-33+i]>>4]
+-		longFileName[start+i*2+1] = dig[longFileName[len(longFileName)-33+i]&0xf]
+-	}
+-	start += 64
+-	for i := start; i < len(longFileName)-1; i++ {
+-		longFileName[i] = 'A'
+-	}
+-	stdcall7(_CreateFileA, uintptr(unsafe.Pointer(&longFileName[0])), 0, 0, 0, OPEN_EXISTING, 0, 0)
+-	// The ERROR_PATH_NOT_FOUND error value is distinct from
+-	// ERROR_FILE_NOT_FOUND or ERROR_INVALID_NAME, the latter of which we
+-	// expect here due to the final component being too long.
+-	if getlasterror() == ERROR_PATH_NOT_FOUND {
+-		*bitField = originalBitField
+-		println("runtime: warning: IsLongPathAwareProcess failed to enable long paths; proceeding in fixup mode")
+-		return
+-	}
+-
+-	canUseLongPaths = true
++	canUseLongPaths = false
+ }
+ 
+ func osinit() {
+@@ -617,7 +561,11 @@ func initWine(k32 uintptr) {
+ //go:nosplit
+ func getRandomData(r []byte) {
+ 	n := 0
+-	if stdcall2(_RtlGenRandom, uintptr(unsafe.Pointer(&r[0])), uintptr(len(r)))&0xff != 0 {
++	const (
++		hAlgorithm                      = 0x0
++		BCRYPT_USE_SYSTEM_PREFERRED_RNG = 0x00000002
++	)
++	if stdcall4(_BCryptGenRandom, uintptr(hAlgorithm), uintptr(unsafe.Pointer(&r[0])), uintptr(uint32(len(r))), uintptr(BCRYPT_USE_SYSTEM_PREFERRED_RNG)) == 0x00000000 {
+ 		n = len(r)
+ 	}
+ 	extendRandom(r, n)

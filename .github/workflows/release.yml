@@ -52,7 +52,7 @@ jobs:
       - name: Apply patch
         run: |
           cd ./go
-          patch --verbose -p 1 < ../patch/unified-1-26-patch.diff
+          patch --verbose -p 1 < ../patch/go-1-26.diff
           cd ..
 
       - name: Set-up Go
@@ -130,7 +130,7 @@ jobs:
           tag: ${{ github.ref }}
           file_glob: true
 
-  pre-cr:
+  legacy:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -154,8 +154,8 @@ jobs:
       - name: Apply patch
         run: |
           cd ./go
-          patch --verbose -p 1 < ../patch/unified-1-26-patch.diff
-          patch --verbose -p 1 < ../patch/pre-KB3125574-1-26.diff
+          patch --verbose -p 1 < ../patch/go-1-26.diff
+          patch --verbose -p 1 < ../patch/legacy-1-26.diff
           cd ..
 
       - name: Copy License
@@ -165,7 +165,7 @@ jobs:
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: source-pre-KB3125574
+          name: source-legacy
           path: |
             ./go/*
 
@@ -174,14 +174,14 @@ jobs:
         shell: bash
         run: |
           cd ./go/
-          zip -9vr ./source-pre-KB3125574.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go"
+          zip -9vr ./source-legacy.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go"
           cd ..
 
       - name: Compute hashes for file
         if: github.event_name == 'release'
         run: |
           cd ./go/
-          FILE=./source-pre-KB3125574.zip
+          FILE=./source-legacy.zip
           DGST=$FILE.dgst
           for METHOD in {"md5","sha1","sha256","sha512"}
           do
@@ -194,74 +194,6 @@ jobs:
         if: github.event_name == 'release'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./go/source-pre-KB3125574.zip*
-          tag: ${{ github.ref }}
-          file_glob: true
-
-  pre-ws:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    strategy:
-      matrix:
-        buildtarget: ['go1.26.4']
-      fail-fast: false
-    steps:
-      - name: Download source
-        uses: actions/checkout@v7
-        with:
-          repository: 'golang/go'
-          ref: ${{ matrix.buildtarget }}
-          path: 'go'
-
-      - name: Download patch
-        uses: actions/checkout@v7
-        with:
-          path: 'patch'
-
-      - name: Apply patch
-        run: |
-          cd ./go
-          patch --verbose -p 1 < ../patch/unified-1-26-patch.diff
-          patch --verbose -p 1 < ../patch/pre-SP1-1-26.diff
-          cd ..
-
-      - name: Copy License
-        run: |
-          cp -f ./patch/LICENSE ./go/
-
-      - name: Upload package to Artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: source-pre-SP1
-          path: |
-            ./go/*
-
-      - name: create ZIP archive
-        if: github.event_name == 'release'
-        shell: bash
-        run: |
-          cd ./go/
-          zip -9vr ./source-pre-SP1.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go"
-          cd ../
-
-      - name: Compute hashes for file
-        if: github.event_name == 'release'
-        run: |
-          cd ./go/
-          FILE=./source-pre-SP1.zip
-          DGST=$FILE.dgst
-          for METHOD in {"md5","sha1","sha256","sha512"}
-          do
-            openssl dgst -$METHOD $FILE | sed 's/([^)]*)//g' >>$DGST
-          done
-          cd ../
-
-      - name: Upload packages to release
-        uses: svenstaro/upload-release-action@v2
-        if: github.event_name == 'release'
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./go/source-pre-SP1.zip*
+          file: ./go/source-legacy.zip*
           tag: ${{ github.ref }}
           file_glob: true

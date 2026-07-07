@@ -54,7 +54,7 @@ jobs:
       - name: Apply patch
         run: |
           cd ./go
-          patch --verbose -p 1 < ../patch/unified-1-26-patch.diff
+          patch --verbose -p 1 < ../patch/go-1-26.diff
           cd ..
 
       - name: Set-up Go
@@ -119,7 +119,7 @@ jobs:
       - name: Apply patch
         run: |
           cd ./go
-          patch --verbose -p 1 < ../patch/unified-1-26-patch.diff
+          patch --verbose -p 1 < ../patch/go-1-26.diff
           cd ..
 
       - name: Upload package to Artifacts
@@ -129,7 +129,7 @@ jobs:
           path: |
             ./go/*
 
-  pre-cr:
+  legacy:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -153,48 +153,13 @@ jobs:
       - name: Apply patch
         run: |
           cd ./go
-          patch --verbose -p 1 < ../patch/unified-1-26-patch.diff
-          patch --verbose -p 1 < ../patch/pre-KB3125574-1-26.diff
+          patch --verbose -p 1 < ../patch/go-1-26.diff
+          patch --verbose -p 1 < ../patch/legacy-1-26.diff
           cd ..
 
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: source-pre-KB3125574
-          path: |
-            ./go/*
-
-  pre-ws:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    strategy:
-      matrix:
-        buildtarget: ['release-branch.go1.26']
-      fail-fast: false
-    steps:
-      - name: Download source
-        uses: actions/checkout@v7
-        with:
-          repository: 'golang/go'
-          ref: ${{ matrix.buildtarget }}
-          path: 'go'
-
-      - name: Download patch
-        uses: actions/checkout@v7
-        with:
-          path: 'patch'
-
-      - name: Apply patch
-        run: |
-          cd ./go
-          patch --verbose -p 1 < ../patch/unified-1-26-patch.diff
-          patch --verbose -p 1 < ../patch/pre-SP1-1-26.diff
-          cd ..
-
-      - name: Upload package to Artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: source-pre-SP1
+          name: source-legacy
           path: |
             ./go/*

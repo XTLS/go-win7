@@ -54,7 +54,7 @@ jobs:
       - name: Apply patch
         run: |
           cd ./go
-          patch --verbose -p 1 < ../patch/unified-1-24-patch.diff
+          patch --verbose -p 1 < ../patch/go-1-24.diff
           cd ..
 
       - name: Set-up Go
@@ -119,12 +119,47 @@ jobs:
       - name: Apply patch
         run: |
           cd ./go
-          patch --verbose -p 1 < ../patch/unified-1-24-patch.diff
+          patch --verbose -p 1 < ../patch/go-1-24.diff
           cd ..
 
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v7
         with:
           name: go-for-win7-source
+          path: |
+            ./go/*
+
+  legacy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        buildtarget: ['release-branch.go1.24']
+      fail-fast: false
+    steps:
+      - name: Download source
+        uses: actions/checkout@v7
+        with:
+          repository: 'golang/go'
+          ref: ${{ matrix.buildtarget }}
+          path: 'go'
+
+      - name: Download patch
+        uses: actions/checkout@v7
+        with:
+          path: 'patch'
+
+      - name: Apply patch
+        run: |
+          cd ./go
+          patch --verbose -p 1 < ../patch/go-1-24.diff
+          patch --verbose -p 1 < ../patch/legacy-1-24.diff
+          cd ..
+
+      - name: Upload package to Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: source-legacy
           path: |
             ./go/*

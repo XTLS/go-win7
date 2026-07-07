@@ -1,0 +1,284 @@
+diff --git a/src/crypto/rand/rand.go b/src/crypto/rand/rand.go
+index d0dcc7cc71fc0c..ef94229296be93 100644
+--- a/src/crypto/rand/rand.go
++++ b/src/crypto/rand/rand.go
+@@ -15,7 +15,7 @@ import "io"
+ // available, /dev/urandom otherwise.
+ // On OpenBSD and macOS, Reader uses getentropy(2).
+ // On other Unix-like systems, Reader reads from /dev/urandom.
+-// On Windows systems, Reader uses the ProcessPrng API.
++// On Windows systems, Reader uses the BCryptGenRandom API.
+ // On JS/Wasm, Reader uses the Web Crypto API.
+ // On WASIP1/Wasm, Reader uses random_get from wasi_snapshot_preview1.
+ var Reader io.Reader
+diff --git a/src/crypto/rand/rand_windows.go b/src/crypto/rand/rand_windows.go
+index 7380f1f0f1e6e6..d991d74dfb0f58 100644
+--- a/src/crypto/rand/rand_windows.go
++++ b/src/crypto/rand/rand_windows.go
+@@ -16,7 +16,10 @@ func init() { Reader = &rngReader{} }
+ type rngReader struct{}
+ 
+ func (r *rngReader) Read(b []byte) (int, error) {
+-	if err := windows.ProcessPrng(b); err != nil {
++	// BCryptGenRandom only returns 1<<32-1 bytes at a time. We only read at
++	// most 1<<31-1 bytes at a time so that  this works the same on 32-bit
++	// and 64-bit systems.
++	if err := batched(windows.BCryptGenRandom, 1<<31-1)(b); err != nil {
+ 		return 0, err
+ 	}
+ 	return len(b), nil
+diff --git a/src/internal/syscall/windows/syscall_windows.go b/src/internal/syscall/windows/syscall_windows.go
+index d10e30cb6825fb..5cd0aea8bf7772 100644
+--- a/src/internal/syscall/windows/syscall_windows.go
++++ b/src/internal/syscall/windows/syscall_windows.go
+@@ -384,7 +384,7 @@ func ErrorLoadingGetTempPath2() error {
+ //sys	DestroyEnvironmentBlock(block *uint16) (err error) = userenv.DestroyEnvironmentBlock
+ //sys	CreateEvent(eventAttrs *SecurityAttributes, manualReset uint32, initialState uint32, name *uint16) (handle syscall.Handle, err error) = kernel32.CreateEventW
+ 
+-//sys	ProcessPrng(buf []byte) (err error) = bcryptprimitives.ProcessPrng
++//sys	BCryptGenRandom(buf []byte) (err error) = bcrypt.BCryptGenRandom
+ 
+ type FILE_ID_BOTH_DIR_INFO struct {
+ 	NextEntryOffset uint32
+diff --git a/src/internal/syscall/windows/zsyscall_windows.go b/src/internal/syscall/windows/zsyscall_windows.go
+index 931f157cf166c2..9fb2f3b8f6820c 100644
+--- a/src/internal/syscall/windows/zsyscall_windows.go
++++ b/src/internal/syscall/windows/zsyscall_windows.go
+@@ -37,14 +37,14 @@ func errnoErr(e syscall.Errno) error {
+ }
+ 
+ var (
+-	modadvapi32         = syscall.NewLazyDLL(sysdll.Add("advapi32.dll"))
+-	modbcryptprimitives = syscall.NewLazyDLL(sysdll.Add("bcryptprimitives.dll"))
+-	modiphlpapi         = syscall.NewLazyDLL(sysdll.Add("iphlpapi.dll"))
+-	modkernel32         = syscall.NewLazyDLL(sysdll.Add("kernel32.dll"))
+-	modnetapi32         = syscall.NewLazyDLL(sysdll.Add("netapi32.dll"))
+-	modpsapi            = syscall.NewLazyDLL(sysdll.Add("psapi.dll"))
+-	moduserenv          = syscall.NewLazyDLL(sysdll.Add("userenv.dll"))
+-	modws2_32           = syscall.NewLazyDLL(sysdll.Add("ws2_32.dll"))
++	modadvapi32 = syscall.NewLazyDLL(sysdll.Add("advapi32.dll"))
++	modbcrypt   = syscall.NewLazyDLL(sysdll.Add("bcrypt.dll"))
++	modiphlpapi = syscall.NewLazyDLL(sysdll.Add("iphlpapi.dll"))
++	modkernel32 = syscall.NewLazyDLL(sysdll.Add("kernel32.dll"))
++	modnetapi32 = syscall.NewLazyDLL(sysdll.Add("netapi32.dll"))
++	modpsapi    = syscall.NewLazyDLL(sysdll.Add("psapi.dll"))
++	moduserenv  = syscall.NewLazyDLL(sysdll.Add("userenv.dll"))
++	modws2_32   = syscall.NewLazyDLL(sysdll.Add("ws2_32.dll"))
+ 
+ 	procAdjustTokenPrivileges             = modadvapi32.NewProc("AdjustTokenPrivileges")
+ 	procDuplicateTokenEx                  = modadvapi32.NewProc("DuplicateTokenEx")
+@@ -56,7 +56,7 @@ var (
+ 	procQueryServiceStatus                = modadvapi32.NewProc("QueryServiceStatus")
+ 	procRevertToSelf                      = modadvapi32.NewProc("RevertToSelf")
+ 	procSetTokenInformation               = modadvapi32.NewProc("SetTokenInformation")
+-	procProcessPrng                       = modbcryptprimitives.NewProc("ProcessPrng")
++	procBCryptGenRandom                   = modbcrypt.NewProc("BCryptGenRandom")
+ 	procGetAdaptersAddresses              = modiphlpapi.NewProc("GetAdaptersAddresses")
+ 	procCreateEventW                      = modkernel32.NewProc("CreateEventW")
+ 	procGetACP                            = modkernel32.NewProc("GetACP")
+@@ -180,13 +180,17 @@ func SetTokenInformation(tokenHandle syscall.Token, tokenInformationClass uint32
+ 	return
+ }
+ 
+-func ProcessPrng(buf []byte) (err error) {
++func BCryptGenRandom(buf []byte) (err error) {
+ 	var _p0 *byte
++	const (
++		hAlgorithm                      = 0x0
++		BCRYPT_USE_SYSTEM_PREFERRED_RNG = 0x00000002
++	)
+ 	if len(buf) > 0 {
+ 		_p0 = &buf[0]
+ 	}
+-	r1, _, e1 := syscall.Syscall(procProcessPrng.Addr(), 2, uintptr(unsafe.Pointer(_p0)), uintptr(len(buf)), 0)
+-	if r1 == 0 {
++	r1, _, e1 := syscall.SyscallN(procBCryptGenRandom.Addr(), uintptr(hAlgorithm), uintptr(unsafe.Pointer(_p0)), uintptr(uint32(len(buf))), uintptr(BCRYPT_USE_SYSTEM_PREFERRED_RNG))
++	if r1 != 0 {
+ 		err = errnoErr(e1)
+ 	}
+ 	return
+diff --git a/src/runtime/os_windows.go b/src/runtime/os_windows.go
+index 6533b6400490d1..b9d14e2bf0d28f 100644
+--- a/src/runtime/os_windows.go
++++ b/src/runtime/os_windows.go
+@@ -127,13 +127,12 @@ var (
+ 	_WriteFile,
+ 	_ stdFunction
+ 
+-	// Use ProcessPrng to generate cryptographically random data.
+-	_ProcessPrng stdFunction
++	// Use BCryptGenRnadom to generate cryptographically random data.
++	_BCryptGenRandom stdFunction
+ 
+ 	// Load ntdll.dll manually during startup, otherwise Mingw
+ 	// links wrong printf function to cgo executable (see issue
+ 	// 12030 for details).
+-	_RtlGetCurrentPeb       stdFunction
+ 	_RtlGetNtVersionNumbers stdFunction
+ 
+ 	// These are from non-kernel32.dll, so we prefer to LoadLibraryEx them.
+@@ -144,11 +143,11 @@ var (
+ )
+ 
+ var (
+-	bcryptprimitivesdll = [...]uint16{'b', 'c', 'r', 'y', 'p', 't', 'p', 'r', 'i', 'm', 'i', 't', 'i', 'v', 'e', 's', '.', 'd', 'l', 'l', 0}
+-	ntdlldll            = [...]uint16{'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l', 0}
+-	powrprofdll         = [...]uint16{'p', 'o', 'w', 'r', 'p', 'r', 'o', 'f', '.', 'd', 'l', 'l', 0}
+-	winmmdll            = [...]uint16{'w', 'i', 'n', 'm', 'm', '.', 'd', 'l', 'l', 0}
+-	ws2_32dll           = [...]uint16{'w', 's', '2', '_', '3', '2', '.', 'd', 'l', 'l', 0}
++	bcryptdll   = [...]uint16{'b', 'c', 'r', 'y', 'p', 't', '.', 'd', 'l', 'l', 0}
++	ntdlldll    = [...]uint16{'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l', 0}
++	powrprofdll = [...]uint16{'p', 'o', 'w', 'r', 'p', 'r', 'o', 'f', '.', 'd', 'l', 'l', 0}
++	winmmdll    = [...]uint16{'w', 'i', 'n', 'm', 'm', '.', 'd', 'l', 'l', 0}
++	ws2_32dll   = [...]uint16{'w', 's', '2', '_', '3', '2', '.', 'd', 'l', 'l', 0}
+ )
+ 
+ // Function to be called by windows CreateThread
+@@ -244,17 +243,16 @@ func windowsLoadSystemLib(name []uint16) uintptr {
+ }
+ 
+ func loadOptionalSyscalls() {
+-	bcryptPrimitives := windowsLoadSystemLib(bcryptprimitivesdll[:])
+-	if bcryptPrimitives == 0 {
+-		throw("bcryptprimitives.dll not found")
++	bcrypt := windowsLoadSystemLib(bcryptdll[:])
++	if bcrypt == 0 {
++		throw("bcrypt.dll not found")
+ 	}
+-	_ProcessPrng = windowsFindfunc(bcryptPrimitives, []byte("ProcessPrng\000"))
++	_BCryptGenRandom = windowsFindfunc(bcrypt, []byte("BCryptGenRandom\000"))
+ 
+ 	n32 := windowsLoadSystemLib(ntdlldll[:])
+ 	if n32 == 0 {
+ 		throw("ntdll.dll not found")
+ 	}
+-	_RtlGetCurrentPeb = windowsFindfunc(n32, []byte("RtlGetCurrentPeb\000"))
+ 	_RtlGetNtVersionNumbers = windowsFindfunc(n32, []byte("RtlGetNtVersionNumbers\000"))
+ 
+ 	m32 := windowsLoadSystemLib(winmmdll[:])
+@@ -442,57 +440,7 @@ var longFileName [(_MAX_PATH+1)*2 + 1]byte
+ // canUseLongPaths is set to true, and later when called, os.fixLongPath
+ // returns early without doing work.
+ func initLongPathSupport() {
+-	const (
+-		IsLongPathAwareProcess = 0x80
+-		PebBitFieldOffset      = 3
+-		OPEN_EXISTING          = 3
+-		ERROR_PATH_NOT_FOUND   = 3
+-	)
+-
+-	// Check that we're ≥ 10.0.15063.
+-	var maj, min, build uint32
+-	stdcall3(_RtlGetNtVersionNumbers, uintptr(unsafe.Pointer(&maj)), uintptr(unsafe.Pointer(&min)), uintptr(unsafe.Pointer(&build)))
+-	if maj < 10 || (maj == 10 && min == 0 && build&0xffff < 15063) {
+-		return
+-	}
+-
+-	// Set the IsLongPathAwareProcess flag of the PEB's bit field.
+-	bitField := (*byte)(unsafe.Pointer(stdcall0(_RtlGetCurrentPeb) + PebBitFieldOffset))
+-	originalBitField := *bitField
+-	*bitField |= IsLongPathAwareProcess
+-
+-	// Check that this actually has an effect, by constructing a large file
+-	// path and seeing whether we get ERROR_PATH_NOT_FOUND, rather than
+-	// some other error, which would indicate the path is too long, and
+-	// hence long path support is not successful. This whole section is NOT
+-	// strictly necessary, but is a nice validity check for the near to
+-	// medium term, when this functionality is still relatively new in
+-	// Windows.
+-	targ := longFileName[len(longFileName)-33 : len(longFileName)-1]
+-	if readRandom(targ) != len(targ) {
+-		readTimeRandom(targ)
+-	}
+-	start := copy(longFileName[:], sysDirectory[:sysDirectoryLen])
+-	const dig = "0123456789abcdef"
+-	for i := 0; i < 32; i++ {
+-		longFileName[start+i*2] = dig[longFileName[len(longFileName)-33+i]>>4]
+-		longFileName[start+i*2+1] = dig[longFileName[len(longFileName)-33+i]&0xf]
+-	}
+-	start += 64
+-	for i := start; i < len(longFileName)-1; i++ {
+-		longFileName[i] = 'A'
+-	}
+-	stdcall7(_CreateFileA, uintptr(unsafe.Pointer(&longFileName[0])), 0, 0, 0, OPEN_EXISTING, 0, 0)
+-	// The ERROR_PATH_NOT_FOUND error value is distinct from
+-	// ERROR_FILE_NOT_FOUND or ERROR_INVALID_NAME, the latter of which we
+-	// expect here due to the final component being too long.
+-	if getlasterror() == ERROR_PATH_NOT_FOUND {
+-		*bitField = originalBitField
+-		println("runtime: warning: IsLongPathAwareProcess failed to enable long paths; proceeding in fixup mode")
+-		return
+-	}
+-
+-	canUseLongPaths = true
++	canUseLongPaths = false
+ }
+ 
+ func osinit() {
+@@ -524,7 +472,11 @@ func osinit() {
+ //go:nosplit
+ func readRandom(r []byte) int {
+ 	n := 0
+-	if stdcall2(_ProcessPrng, uintptr(unsafe.Pointer(&r[0])), uintptr(len(r)))&0xff != 0 {
++	const (
++		hAlgorithm                      = 0x0
++		BCRYPT_USE_SYSTEM_PREFERRED_RNG = 0x00000002
++	)
++	if stdcall4(_BCryptGenRandom, uintptr(hAlgorithm), uintptr(unsafe.Pointer(&r[0])), uintptr(uint32(len(r))), uintptr(BCRYPT_USE_SYSTEM_PREFERRED_RNG)) == 0x00000000 {
+ 		n = len(r)
+ 	}
+ 	return n
+diff --git a/src/syscall/exec_windows.go b/src/syscall/exec_windows.go
+index 1220de4cdf1e36..e07d2d73c8e5f7 100644
+--- a/src/syscall/exec_windows.go
++++ b/src/syscall/exec_windows.go
+@@ -317,6 +317,17 @@ func StartProcess(argv0 string, argv []string, attr *ProcAttr) (pid int, handle
+ 		}
+ 	}
+ 
++	var maj, min, build uint32
++	rtlGetNtVersionNumbers(&maj, &min, &build)
++	isLegacyWin := maj < 6 || (maj == 6 && min <= 1)
++	// NT kernel handles are divisible by 4, with the bottom 3 bits left as
++	// a tag. The fully set tag correlates with the types of handles we're
++	// concerned about here.  Except, the kernel will interpret some
++	// special handle values, like -1, -2, and so forth, so kernelbase.dll
++	// checks to see that those bottom three bits are checked, but that top
++	// bit is not checked.
++	isLegacyWinConsoleHandle := func(handle Handle) bool { return isLegacyWin && handle&0x10000003 == 3 }
++
+ 	p, _ := GetCurrentProcess()
+ 	parentProcess := p
+ 	if sys.ParentProcess != 0 {
+@@ -325,7 +336,15 @@ func StartProcess(argv0 string, argv []string, attr *ProcAttr) (pid int, handle
+ 	fd := make([]Handle, len(attr.Files))
+ 	for i := range attr.Files {
+ 		if attr.Files[i] > 0 {
+-			err := DuplicateHandle(p, Handle(attr.Files[i]), parentProcess, &fd[i], 0, true, DUPLICATE_SAME_ACCESS)
++			destinationProcessHandle := parentProcess
++
++			// On Legacy Windows, console handles aren't real handles, and can only be duplicated
++			// into the current process, not a parent one, which amounts to the same thing.
++			if parentProcess != p && isLegacyWinConsoleHandle(Handle(attr.Files[i])) {
++				destinationProcessHandle = p
++			}
++
++			err := DuplicateHandle(p, Handle(attr.Files[i]), destinationProcessHandle, &fd[i], 0, true, DUPLICATE_SAME_ACCESS)
+ 			if err != nil {
+ 				return 0, 0, err
+ 			}
+@@ -356,6 +375,14 @@ func StartProcess(argv0 string, argv []string, attr *ProcAttr) (pid int, handle
+ 
+ 	fd = append(fd, sys.AdditionalInheritedHandles...)
+ 
++	// On Legacy Windows, console handles aren't real handles, so don't pass them
++	// through to PROC_THREAD_ATTRIBUTE_HANDLE_LIST.
++	for i := range fd {
++		if isLegacyWinConsoleHandle(fd[i]) {
++			fd[i] = 0
++		}
++	}
++
+ 	// The presence of a NULL handle in the list is enough to cause PROC_THREAD_ATTRIBUTE_HANDLE_LIST
+ 	// to treat the entire list as empty, so remove NULL handles.
+ 	j := 0
