@@ -432,3 +432,14 @@ func isDirectoryLink(fi FileInfo) bool {
 	fs, ok := fi.(*fileStat)
 	return ok && fs.FileAttributes&syscall.FILE_ATTRIBUTE_DIRECTORY != 0
 }
+
+func checkPathEscapes(r *Root, name string) error {
+	if !filepathlite.IsLocal(name) {
+		return errPathEscapes
+	}
+	return nil
+}
+
+func checkPathEscapesLstat(r *Root, name string) error {
+	return checkPathEscapes(r, name)
+}
