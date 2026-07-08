@@ -1,16 +1,3 @@
-diff --git a/src/cmd/link/internal/ld/pe.go b/src/cmd/link/internal/ld/pe.go
-index 8a01d1f2df3fc5..b0579ce16877d1 100644
---- a/src/cmd/link/internal/ld/pe.go
-+++ b/src/cmd/link/internal/ld/pe.go
-@@ -282,7 +282,7 @@ type IMAGE_LOAD_CONFIG_DIRECTORY64 struct {
- }
- 
- const (
--	PeMinimumTargetMajorVersion = 10
-+	PeMinimumTargetMajorVersion = 6
- 	PeMinimumTargetMinorVersion = 0
- )
- 
 diff --git a/src/crypto/internal/sysrand/rand_windows.go b/src/crypto/internal/sysrand/rand_windows.go
 index 91f1490c15cda3..f7d6007211461d 100644
 --- a/src/crypto/internal/sysrand/rand_windows.go
@@ -57,7 +44,7 @@ index 018fe013cef600..8c97d05b44323c 100644
  //   - On wasip1/wasm, Reader uses random_get.
  //
 diff --git a/src/internal/syscall/windows/syscall_windows.go b/src/internal/syscall/windows/syscall_windows.go
-index a6806c321701d0..bb6e7fcaa97651 100644
+index 00291b52fd2cb3..e75980c4534287 100644
 --- a/src/internal/syscall/windows/syscall_windows.go
 +++ b/src/internal/syscall/windows/syscall_windows.go
 @@ -421,7 +421,7 @@ func ErrorLoadingGetTempPath2() error {
@@ -70,7 +57,7 @@ index a6806c321701d0..bb6e7fcaa97651 100644
  type FILE_ID_BOTH_DIR_INFO struct {
  	NextEntryOffset uint32
 diff --git a/src/internal/syscall/windows/zsyscall_windows.go b/src/internal/syscall/windows/zsyscall_windows.go
-index 5bc228e63069ca..c910a8b96c8be8 100644
+index 217274664fa6df..963c18d841c680 100644
 --- a/src/internal/syscall/windows/zsyscall_windows.go
 +++ b/src/internal/syscall/windows/zsyscall_windows.go
 @@ -37,15 +37,15 @@ func errnoErr(e syscall.Errno) error {
@@ -107,7 +94,7 @@ index 5bc228e63069ca..c910a8b96c8be8 100644
  	procGetAdaptersAddresses              = modiphlpapi.NewProc("GetAdaptersAddresses")
  	procCreateEventW                      = modkernel32.NewProc("CreateEventW")
  	procCreateIoCompletionPort            = modkernel32.NewProc("CreateIoCompletionPort")
-@@ -272,13 +272,17 @@ func SetTokenInformation(tokenHandle syscall.Token, tokenInformationClass uint32
+@@ -271,13 +271,17 @@ func SetTokenInformation(tokenHandle syscall.Token, tokenInformationClass uint32
  	return
  }
  
@@ -129,7 +116,7 @@ index 5bc228e63069ca..c910a8b96c8be8 100644
  	}
  	return
 diff --git a/src/os/removeall_at.go b/src/os/removeall_at.go
-index 9a7cea613bd066..d04fdd62d7af44 100644
+index 9a7cea613bd066..f81504230cb8ef 100644
 --- a/src/os/removeall_at.go
 +++ b/src/os/removeall_at.go
 @@ -2,7 +2,7 @@
@@ -141,8 +128,34 @@ index 9a7cea613bd066..d04fdd62d7af44 100644
  
  package os
  
+@@ -179,3 +179,25 @@ func openDirAt(dirfd sysfdType, name string) (*File, error) {
+ 	}
+ 	return newDirFile(fd, name)
+ }
++
++func rootRemoveAll(r *Root, name string) error {
++	// Consistency with os.RemoveAll: Strip trailing /s from the name,
++	// so RemoveAll("not_a_directory/") succeeds.
++	for len(name) > 0 && IsPathSeparator(name[len(name)-1]) {
++		name = name[:len(name)-1]
++	}
++	if endsWithDot(name) {
++		// Consistency with os.RemoveAll: Return EINVAL when trying to remove .
++		return &PathError{Op: "RemoveAll", Path: name, Err: syscall.EINVAL}
++	}
++	_, err := doInRoot(r, name, nil, func(parent sysfdType, name string) (struct{}, error) {
++		return struct{}{}, removeAllFrom(parent, name)
++	})
++	if IsNotExist(err) {
++		return nil
++	}
++	if err != nil {
++		return &PathError{Op: "RemoveAll", Path: name, Err: underlyingError(err)}
++	}
++	return err
++}
 diff --git a/src/os/removeall_noat.go b/src/os/removeall_noat.go
-index 395a1503d49442..02f6fca70283f7 100644
+index 395a1503d49442..977924e3fe0b86 100644
 --- a/src/os/removeall_noat.go
 +++ b/src/os/removeall_noat.go
 @@ -2,7 +2,7 @@
@@ -154,23 +167,29 @@ index 395a1503d49442..02f6fca70283f7 100644
  
  package os
  
-diff --git a/src/os/root.go b/src/os/root.go
-index d759727ce7a89b..1ecbcc094f15b0 100644
---- a/src/os/root.go
-+++ b/src/os/root.go
-@@ -189,12 +189,6 @@ func (r *Root) Remove(name string) error {
- 	return rootRemove(r, name)
+@@ -140,3 +140,22 @@ func removeAll(path string) error {
+ 	}
+ 	return err
  }
- 
--// RemoveAll removes the named file or directory and any children that it contains.
--// See [RemoveAll] for more details.
--func (r *Root) RemoveAll(name string) error {
--	return rootRemoveAll(r, name)
--}
--
- // Stat returns a [FileInfo] describing the named file in the root.
- // See [Stat] for more details.
- func (r *Root) Stat(name string) (FileInfo, error) {
++
++func rootRemoveAll(r *Root, name string) error {
++	if endsWithDot(name) {
++		// Consistency with os.RemoveAll: Return EINVAL when trying to remove .
++		return &PathError{Op: "RemoveAll", Path: name, Err: syscall.EINVAL}
++	}
++	if err := checkPathEscapesLstat(r, name); err != nil {
++		if err == syscall.ENOTDIR {
++			// Some intermediate path component is not a directory.
++			// RemoveAll treats this as success (since the target doesn't exist).
++			return nil
++		}
++		return &PathError{Op: "RemoveAll", Path: name, Err: err}
++	}
++	if err := RemoveAll(joinPath(r.root.name, name)); err != nil {
++		return &PathError{Op: "RemoveAll", Path: name, Err: underlyingError(err)}
++	}
++	return nil
++}
 diff --git a/src/os/root_noopenat.go b/src/os/root_noopenat.go
 index 59f1abe91b0b2e..ecdf264f28d7d6 100644
 --- a/src/os/root_noopenat.go
@@ -242,11 +261,30 @@ index 83bde5ef14160d..af95349898243c 100644
  func rootRename(r *Root, oldname, newname string) error {
  	_, err := doInRoot(r, oldname, nil, func(oldparent sysfdType, oldname string) (struct{}, error) {
  		_, err := doInRoot(r, newname, nil, func(newparent sysfdType, newname string) (struct{}, error) {
+diff --git a/src/os/root_windows.go b/src/os/root_windows.go
+index da995e6d7f5c3b..95c1f04c255d89 100644
+--- a/src/os/root_windows.go
++++ b/src/os/root_windows.go
+@@ -402,3 +402,14 @@ func modeAt(parent syscall.Handle, name string) (FileMode, error) {
+ 	}
+ 	return fi.Mode(), nil
+ }
++
++func checkPathEscapes(r *Root, name string) error {
++	if !filepathlite.IsLocal(name) {
++		return errPathEscapes
++	}
++	return nil
++}
++
++func checkPathEscapesLstat(r *Root, name string) error {
++	return checkPathEscapes(r, name)
++}
 diff --git a/src/runtime/os_windows.go b/src/runtime/os_windows.go
-index 42af4200547b64..209b40547ee786 100644
+index 1688ba910e604a..a096aa2327e13e 100644
 --- a/src/runtime/os_windows.go
 +++ b/src/runtime/os_windows.go
-@@ -128,8 +128,8 @@ var (
+@@ -126,8 +126,8 @@ var (
  	_WriteFile,
  	_ stdFunction
  
@@ -257,7 +295,7 @@ index 42af4200547b64..209b40547ee786 100644
  
  	// Load ntdll.dll manually during startup, otherwise Mingw
  	// links wrong printf function to cgo executable (see issue
-@@ -137,7 +137,6 @@ var (
+@@ -135,7 +135,6 @@ var (
  	_NtCreateWaitCompletionPacket    stdFunction
  	_NtAssociateWaitCompletionPacket stdFunction
  	_NtCancelWaitCompletionPacket    stdFunction
@@ -265,7 +303,7 @@ index 42af4200547b64..209b40547ee786 100644
  	_RtlGetVersion                   stdFunction
  
  	// These are from non-kernel32.dll, so we prefer to LoadLibraryEx them.
-@@ -147,10 +146,10 @@ var (
+@@ -145,10 +144,10 @@ var (
  )
  
  var (
@@ -280,7 +318,7 @@ index 42af4200547b64..209b40547ee786 100644
  )
  
  // Function to be called by windows CreateThread
-@@ -270,11 +269,11 @@ func cpu_isProcessorFeaturePresent(processorFeature uint32) bool {
+@@ -262,11 +261,11 @@ func windows_QueryPerformanceFrequency() int64 {
  }
  
  func loadOptionalSyscalls() {
@@ -296,7 +334,7 @@ index 42af4200547b64..209b40547ee786 100644
  
  	n32 := windowsLoadSystemLib(ntdlldll[:])
  	if n32 == 0 {
-@@ -292,7 +291,6 @@ func loadOptionalSyscalls() {
+@@ -284,7 +283,6 @@ func loadOptionalSyscalls() {
  			throw("NtCreateWaitCompletionPacket exists but NtCancelWaitCompletionPacket does not")
  		}
  	}
@@ -304,7 +342,7 @@ index 42af4200547b64..209b40547ee786 100644
  	_RtlGetVersion = windowsFindfunc(n32, []byte("RtlGetVersion\000"))
  }
  
-@@ -444,26 +442,27 @@ var canUseLongPaths bool
+@@ -436,26 +434,27 @@ var canUseLongPaths bool
  
  // initLongPathSupport enables long path support.
  func initLongPathSupport() {
@@ -347,7 +385,7 @@ index 42af4200547b64..209b40547ee786 100644
  }
  
  func osinit() {
-@@ -480,6 +479,7 @@ func osinit() {
+@@ -472,6 +471,7 @@ func osinit() {
  
  	initSysDirectory()
  	initLongPathSupport()
@@ -355,7 +393,7 @@ index 42af4200547b64..209b40547ee786 100644
  
  	numCPUStartup = getCPUCount()
  
-@@ -495,7 +495,11 @@ func osinit() {
+@@ -487,7 +487,11 @@ func osinit() {
  //go:nosplit
  func readRandom(r []byte) int {
  	n := 0
@@ -369,7 +407,7 @@ index 42af4200547b64..209b40547ee786 100644
  	}
  	return n
 diff --git a/src/syscall/exec_windows.go b/src/syscall/exec_windows.go
-index 96089fcd93a634..46272d736672b0 100644
+index 96089fcd93a634..361c005dc5a002 100644
 --- a/src/syscall/exec_windows.go
 +++ b/src/syscall/exec_windows.go
 @@ -304,6 +304,9 @@ type SysProcAttr struct {
