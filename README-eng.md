@@ -127,3 +127,9 @@ Testing environment:
 - Windows 7 / Windows Server 2008 R2: Require patches in SDK, and binaries must be built with patched SDK.
 
 #### Patches included in standard patch:
+
+- Remove PEB hack for long path support (From Microsoft Go)
+- Fix PE header locking on minimum Windows NT 10.0
+- Fix dysfunctional of `os.RemoveAll` failing on legacy Windows
+- Use `BCryptGenRandom` as a compatible substitution of `ProcessPrng`
+- Fix removed console handle workaround for legacy Windows

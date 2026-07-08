@@ -127,3 +127,9 @@
 - Windows 7 / Windows Server 2008 R2：需要在 SDK 中植入补丁，并且只能运行用修补后的 SDK 构建的二进制。
 
 #### 标准补丁包含内容：
+
+- 移除使用劫持进程环境块开启的长文件名支持（来自 Microsoft Go）
+- 修复 PE 头部最小加载版本为 Windows NT 10.0 后的问题
+- 修复 `os.RemoveAll` 在旧版本系统上行为异常的问题
+- 使用 `BCryptGenRandom` 替换 `ProcessPrng`
+- 修复因移除针对旧版 Windows 控制台的额外措施导致可能发生的控制台异常
