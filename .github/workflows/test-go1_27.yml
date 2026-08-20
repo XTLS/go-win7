@@ -3,7 +3,7 @@ name: Build patched Go 1.27 for tests
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 0 * * 6'
+    - cron: '20 0 * * 6'
   push:
     branches:
       - build

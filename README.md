@@ -34,7 +34,7 @@ Detailed ReadMe / 详细说明文件:
 
 ## Supported version
 
-Current support status: 1.26.x (main), 1.25.x (check)
+Current support status: 1.27.x (main), 1.26.x (check)
 
 Possible final target: 1.30.x
 

@@ -23,7 +23,7 @@ jobs:
       matrix:
         goos: [windows, linux, darwin]
         goarch: [amd64, arm64]
-        buildtarget: ['go1.26.7']
+        buildtarget: ['go1.27.0']
       fail-fast: false
     env:
       GOOS: ${{ matrix.goos }}
@@ -48,11 +48,11 @@ jobs:
         with:
           path: 'patch'
 
-      # Patches for Go 1.26.x before more minor changes introduces.
+      # Patches for Go 1.27.x before more minor changes introduces.
       - name: Apply patch
         run: |
           cd ./go
-          patch --verbose -p 1 < ../patch/go-1-26.diff
+          patch --verbose -p 1 < ../patch/go-1-27.diff
           cd ..
 
       - name: Set-up Go
@@ -127,73 +127,5 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./go/go-for-win7-${{ env.ASSET_NAME }}.zip*
-          tag: ${{ github.ref }}
-          file_glob: true
-
-  legacy:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    strategy:
-      matrix:
-        buildtarget: ['go1.26.7']
-      fail-fast: false
-    steps:
-      - name: Download source
-        uses: actions/checkout@v7
-        with:
-          repository: 'golang/go'
-          ref: ${{ matrix.buildtarget }}
-          path: 'go'
-
-      - name: Download patch
-        uses: actions/checkout@v7
-        with:
-          path: 'patch'
-
-      - name: Apply patch
-        run: |
-          cd ./go
-          patch --verbose -p 1 < ../patch/go-1-26.diff
-          patch --verbose -p 1 < ../patch/legacy-1-26.diff
-          cd ..
-
-      - name: Copy License
-        run: |
-          cp -f ./patch/LICENSE ./go/
-
-      - name: Upload package to Artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: source-legacy
-          path: |
-            ./go/*
-
-      - name: create ZIP archive
-        if: github.event_name == 'release'
-        shell: bash
-        run: |
-          cd ./go/
-          zip -9vr ./source-legacy.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go"
-          cd ..
-
-      - name: Compute hashes for file
-        if: github.event_name == 'release'
-        run: |
-          cd ./go/
-          FILE=./source-legacy.zip
-          DGST=$FILE.dgst
-          for METHOD in {"md5","sha1","sha256","sha512"}
-          do
-            openssl dgst -$METHOD $FILE | sed 's/([^)]*)//g' >>$DGST
-          done
-          cd ../
-
-      - name: Upload packages to release
-        uses: svenstaro/upload-release-action@v2
-        if: github.event_name == 'release'
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./go/source-legacy.zip*
           tag: ${{ github.ref }}
           file_glob: true
