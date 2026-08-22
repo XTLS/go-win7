@@ -32,6 +32,7 @@ Testing environment:
 
 #### Patches included in standard patch:
 
+- Lock SDK to a local one and never download a different one (new deployment only)
 - Remove PEB hack for long path support (From Microsoft Go)
 - Use `BCryptGenRandom` as a compatible substitution of `ProcessPrng`
 
@@ -46,6 +47,7 @@ Testing environment:
 
 #### Patches included in standard patch:
 
+- Lock SDK to a local one and never download a different one (new deployment only)
 - Remove PEB hack for long path support (From Microsoft Go)
 - Use `BCryptGenRandom` as a compatible substitution of `ProcessPrng`
 - Fix removed console handle workaround for legacy Windows
@@ -62,6 +64,7 @@ Testing environment:
 
 #### Patches included in standard patch:
 
+- Lock SDK to a local one and never download a different one
 - Remove PEB hack for long path support (From Microsoft Go)
 - Use `BCryptGenRandom` as a compatible substitution of `ProcessPrng`
 - Fix removed console handle workaround for legacy Windows
@@ -78,6 +81,7 @@ Testing environment:
 
 #### Patches included in standard patch:
 
+- Lock SDK to a local one and never download a different one (new deployment only)
 - Remove PEB hack for long path support (From Microsoft Go)
 - Use `BCryptGenRandom` as a compatible substitution of `ProcessPrng`
 - Fix removed console handle workaround for legacy Windows
@@ -94,6 +98,7 @@ Testing environment:
 
 #### Patches included in standard patch:
 
+- Lock SDK to a local one and never download a different one (new deployment only)
 - Remove PEB hack for long path support (From Microsoft Go)
 - Fix dysfunctional of `os.RemoveAll` failing on legacy Windows
 - Use `BCryptGenRandom` as a compatible substitution of `ProcessPrng`
@@ -111,6 +116,7 @@ Testing environment:
 
 #### Patches included in standard patch:
 
+- Lock SDK to a local one and never download a different one (new deployment only)
 - Remove PEB hack for long path support (From Microsoft Go)
 - Fix dysfunctional of `os.RemoveAll` failing on legacy Windows
 - Use `BCryptGenRandom` as a compatible substitution of `ProcessPrng`
@@ -128,6 +134,7 @@ Testing environment:
 
 #### Patches included in standard patch:
 
+- Lock SDK to a local one and never download a different one (new deployment only)
 - Remove PEB hack for long path support (From Microsoft Go)
 - Fix PE header locking on minimum Windows NT 10.0
 - Fix dysfunctional of `os.RemoveAll` failing on legacy Windows
