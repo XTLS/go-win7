@@ -1,3 +1,16 @@
+diff --git a/go.env b/go.env
+index 91f1490c15cda3..f7d6007211461d 100644
+--- a/go.env
++++ b/go.env
+@@ -7,6 +7,6 @@
+ GOPROXY=https://proxy.golang.org,direct
+ GOSUMDB=sum.golang.org
+ 
+-# Automatically download newer toolchains as directed by go.mod files.
++# Use the locally installed Go toolchain, never downloading a different one.
+ # See https://go.dev/doc/toolchain for details.
+-GOTOOLCHAIN=auto
++GOTOOLCHAIN=local
 diff --git a/src/cmd/link/internal/ld/pe.go b/src/cmd/link/internal/ld/pe.go
 index 8376ddefe56bb7..bd12916d4e9dcb 100644
 --- a/src/cmd/link/internal/ld/pe.go
@@ -180,7 +193,7 @@ index 395a1503d49442..01159eefea3121 100644
  
  package os
  
-@@ -140,3 +140,27 @@ func removeAll(path string) error {
+@@ -146,3 +146,27 @@ func removeAll(path string) error {
  	}
  	return err
  }
@@ -220,7 +233,7 @@ index 228b580db41be9..ecdf264f28d7d6 100644
  	"time"
  )
  
-@@ -186,30 +185,6 @@ func rootRemove(r *Root, name string) error {
+@@ -191,30 +191,6 @@ func rootRemove(r *Root, name string) error {
  	return nil
  }
  
@@ -255,7 +268,7 @@ diff --git a/src/os/root_openat.go b/src/os/root_openat.go
 index d7c9334ac1919c..87d39a16f1b672 100644
 --- a/src/os/root_openat.go
 +++ b/src/os/root_openat.go
-@@ -206,28 +206,6 @@ func rootRemove(r *Root, name string) error {
+@@ -217,28 +217,6 @@ func rootRemove(r *Root, name string) error {
  	return nil
  }
  

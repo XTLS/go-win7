@@ -1,3 +1,16 @@
+diff --git a/go.env b/go.env
+index 91f1490c15cda3..f7d6007211461d 100644
+--- a/go.env
++++ b/go.env
+@@ -7,6 +7,6 @@
+ GOPROXY=https://proxy.golang.org,direct
+ GOSUMDB=sum.golang.org
+ 
+-# Automatically download newer toolchains as directed by go.mod files.
++# Use the locally installed Go toolchain, never downloading a different one.
+ # See https://go.dev/doc/toolchain for details.
+-GOTOOLCHAIN=auto
++GOTOOLCHAIN=local
 diff --git a/src/crypto/internal/sysrand/rand_windows.go b/src/crypto/internal/sysrand/rand_windows.go
 index 91f1490c15cda3..f7d6007211461d 100644
 --- a/src/crypto/internal/sysrand/rand_windows.go
