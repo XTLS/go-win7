@@ -23,7 +23,7 @@ jobs:
       matrix:
         goos: [windows, linux, darwin]
         goarch: [amd64, arm64]
-        buildtarget: ['go1.27.0']
+        buildtarget: ['go1.27.1']
       fail-fast: false
     env:
       GOOS: ${{ matrix.goos }}

@@ -48,3 +48,11 @@ Current support status: 1.27.x (main), 1.26.x (check)
 Possible final target: 1.30.x
 
 For more details, read #16 .
+
+## Quick download
+
+To get the latest release in maintenance state, click [here](https://github.com/XTLS/go-win7/releases/latest)
+
+To get the real-time updated package archive of every major version currently maintaining, click [here](https://github.com/XTLS/go-win7/releases/tag/current)
+
+To get the real-time updated package archive of every out-of-maintenance major version, click [here](https://github.com/XTLS/go-win7/releases/tag/archive)
