@@ -24,3 +24,6 @@ Go 1.26
 
 Go 1.27
 2026-03-24 https://github.com/golang/go/commit/341b5e2c0261cc059b157f1c7a2a2c4d1f417f0d cmd/link: raise minimum windows version to 10 [critical]
+
+Go 1.28
+2026-09-11 https://github.com/golang/go/commit/59ea07ba27f521de41bbfab78a6a12f71c2fb17c os: handle unsupported OBJ_DONT_REPARSE on older Windows [related 6d418096b2dfe2a2e47b7aa83b46748fb301e6cb 6d418096b2dfe2a2e47b7aa83b46748fb301e6cb][upstream fix]
