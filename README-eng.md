@@ -155,7 +155,7 @@ Current situation: In reality, `RtlGenRandom` has a known security issue related
 
 #### Patches was introduced but removed
 
-- Fix `os.RemoveAll` failing on legacy Windows (Fixed by ? in Go 1.26.9)
+- Fix `os.RemoveAll` failing on legacy Windows (Fixed by `c7183cd20d5859b8ae5ef065dafcc28f75b1cdb3` / CL832805 in Go 1.26.9)
 
 ## Go 1.27
 
@@ -172,7 +172,7 @@ Current situation: In reality, `RtlGenRandom` has a known security issue related
 
 #### Patches was introduced but removed
 
-- Fix `os.RemoveAll` failing on legacy Windows (Fixed by ? in Go 1.27.2)
+- Fix `os.RemoveAll` failing on legacy Windows (Fixed by `e89d44fee06cacdbc1e9753ee109a35d6a5c377c` / CL832804 in Go 1.27.2)
 
 ## Go 1.28
 

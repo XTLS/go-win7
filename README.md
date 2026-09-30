@@ -51,6 +51,7 @@ If the machine with older OS is used for special purpose(s) and cannot / not sui
 
 Updates below are recommended besides the baseline requirements:
 
+- KB2999226 (Windows Server 2012 R2, Windows Server 2012, Windows Server 2008 R2 SP1, Windows 8.1, Windows 7): Update for Universal C Runtime in Windows.
 - KB3140245 (Windows Server 2012, Windows Server 2008 R2 SP1, and Windows 7 SP1): Providing support for TLS 1.1 and 1.2 in system SChannel, which is used by many system components. You may need to use Easy fix from Microsoft to enable TLS 1.2 support correctly which update several registry keys.
 - .NET Framework updates: This enable correct TLS 1.2 support in .NET Framework applications correctly in older OSes.
   - .NET Framework 4.5.1 or 4.5.2 (Windows Server 2012 R2, Windows Server 2012, Windows 8.1): Install at least latest updates for 4.5.1 or 4.5.2 as a baseline.
