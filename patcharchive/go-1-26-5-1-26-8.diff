@@ -128,6 +128,181 @@ index 217274664fa6df..963c18d841c680 100644
  		err = errnoErr(e1)
  	}
  	return
+diff --git a/src/os/removeall_at.go b/src/os/removeall_at.go
+index 9a7cea613bd066..f81504230cb8ef 100644
+--- a/src/os/removeall_at.go
++++ b/src/os/removeall_at.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build unix || wasip1 || windows
++//go:build unix || wasip1
+ 
+ package os
+ 
+@@ -179,3 +179,25 @@ func openDirAt(dirfd sysfdType, name string) (*File, error) {
+ 	}
+ 	return newDirFile(fd, name)
+ }
++
++func rootRemoveAll(r *Root, name string) error {
++	// Consistency with os.RemoveAll: Strip trailing /s from the name,
++	// so RemoveAll("not_a_directory/") succeeds.
++	for len(name) > 0 && IsPathSeparator(name[len(name)-1]) {
++		name = name[:len(name)-1]
++	}
++	if endsWithDot(name) {
++		// Consistency with os.RemoveAll: Return EINVAL when trying to remove .
++		return &PathError{Op: "RemoveAll", Path: name, Err: syscall.EINVAL}
++	}
++	_, err := doInRoot(r, name, 0, nil, func(parent sysfdType, name string, endsInSlash bool) (struct{}, error) {
++		return struct{}{}, removeAllFrom(parent, name)
++	})
++	if IsNotExist(err) {
++		return nil
++	}
++	if err != nil {
++		return &PathError{Op: "RemoveAll", Path: name, Err: underlyingError(err)}
++	}
++	return err
++}
+diff --git a/src/os/removeall_noat.go b/src/os/removeall_noat.go
+index 395a1503d49442..977924e3fe0b86 100644
+--- a/src/os/removeall_noat.go
++++ b/src/os/removeall_noat.go
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-//go:build (js && wasm) || plan9
++//go:build (js && wasm) || plan9 || windows
+ 
+ package os
+ 
+@@ -140,3 +140,27 @@ func removeAll(path string) error {
+ 	}
+ 	return err
+ }
++
++func rootRemoveAll(r *Root, name string) error {
++	// Consistency with os.RemoveAll: Strip trailing /s from the name,
++	// so RemoveAll("not_a_directory/") succeeds.
++	for len(name) > 0 && IsPathSeparator(name[len(name)-1]) {
++		name = name[:len(name)-1]
++	}
++	if endsWithDot(name) {
++		// Consistency with os.RemoveAll: Return EINVAL when trying to remove .
++		return &PathError{Op: "RemoveAll", Path: name, Err: syscall.EINVAL}
++	}
++	if err := checkPathEscapesLstat(r, name); err != nil {
++		if err == syscall.ENOTDIR {
++			// Some intermediate path component is not a directory.
++			// RemoveAll treats this as success (since the target doesn't exist).
++			return nil
++		}
++		return &PathError{Op: "RemoveAll", Path: name, Err: err}
++	}
++	if err := RemoveAll(joinPath(r.root.name, name)); err != nil {
++		return &PathError{Op: "RemoveAll", Path: name, Err: underlyingError(err)}
++	}
++	return nil
++}
+diff --git a/src/os/root_noopenat.go b/src/os/root_noopenat.go
+index 59f1abe91b0b2e..ecdf264f28d7d6 100644
+--- a/src/os/root_noopenat.go
++++ b/src/os/root_noopenat.go
+@@ -11,7 +11,6 @@ import (
+ 	"internal/filepathlite"
+ 	"internal/stringslite"
+ 	"sync/atomic"
+-	"syscall"
+ 	"time"
+ )
+ 
+@@ -186,30 +185,6 @@ func rootRemove(r *Root, name string) error {
+ 	return nil
+ }
+ 
+-func rootRemoveAll(r *Root, name string) error {
+-	// Consistency with os.RemoveAll: Strip trailing /s from the name,
+-	// so RemoveAll("not_a_directory/") succeeds.
+-	for len(name) > 0 && IsPathSeparator(name[len(name)-1]) {
+-		name = name[:len(name)-1]
+-	}
+-	if endsWithDot(name) {
+-		// Consistency with os.RemoveAll: Return EINVAL when trying to remove .
+-		return &PathError{Op: "RemoveAll", Path: name, Err: syscall.EINVAL}
+-	}
+-	if err := checkPathEscapesLstat(r, name); err != nil {
+-		if err == syscall.ENOTDIR {
+-			// Some intermediate path component is not a directory.
+-			// RemoveAll treats this as success (since the target doesn't exist).
+-			return nil
+-		}
+-		return &PathError{Op: "RemoveAll", Path: name, Err: err}
+-	}
+-	if err := RemoveAll(joinPath(r.root.name, name)); err != nil {
+-		return &PathError{Op: "RemoveAll", Path: name, Err: underlyingError(err)}
+-	}
+-	return nil
+-}
+-
+ func rootReadlink(r *Root, name string) (string, error) {
+ 	if err := checkPathEscapesLstat(r, name); err != nil {
+ 		return "", &PathError{Op: "readlinkat", Path: name, Err: err}
+diff --git a/src/os/root_openat.go b/src/os/root_openat.go
+index 83bde5ef14160d..af95349898243c 100644
+--- a/src/os/root_openat.go
++++ b/src/os/root_openat.go
+@@ -206,28 +206,6 @@ func rootRemove(r *Root, name string) error {
+ 	return nil
+ }
+ 
+-func rootRemoveAll(r *Root, name string) error {
+-	// Consistency with os.RemoveAll: Strip trailing /s from the name,
+-	// so RemoveAll("not_a_directory/") succeeds.
+-	for len(name) > 0 && IsPathSeparator(name[len(name)-1]) {
+-		name = name[:len(name)-1]
+-	}
+-	if endsWithDot(name) {
+-		// Consistency with os.RemoveAll: Return EINVAL when trying to remove .
+-		return &PathError{Op: "RemoveAll", Path: name, Err: syscall.EINVAL}
+-	}
+-	_, err := doInRoot(r, name, 0, nil, func(parent sysfdType, name string, endsInSlash bool) (struct{}, error) {
+-		return struct{}{}, removeAllFrom(parent, name)
+-	})
+-	if IsNotExist(err) {
+-		return nil
+-	}
+-	if err != nil {
+-		return &PathError{Op: "RemoveAll", Path: name, Err: underlyingError(err)}
+-	}
+-	return err
+-}
+-
+ func rootRename(r *Root, oldname, newname string) error {
+ 	_, err := doInRoot(r, oldname, 0, nil, func(oldparent sysfdType, oldname string, oldEndsInSlash bool) (struct{}, error) {
+ 		flags := uint(doInRootCreatingDirectory)
+diff --git a/src/os/root_windows.go b/src/os/root_windows.go
+index da995e6d7f5c3b..95c1f04c255d89 100644
+--- a/src/os/root_windows.go
++++ b/src/os/root_windows.go
+@@ -428,3 +428,14 @@ func isDirectoryLink(fi FileInfo) bool {
+ 	fs, ok := fi.(*fileStat)
+ 	return ok && fs.FileAttributes&syscall.FILE_ATTRIBUTE_DIRECTORY != 0
+ }
++
++func checkPathEscapes(r *Root, name string) error {
++	if !filepathlite.IsLocal(name) {
++		return errPathEscapes
++	}
++	return nil
++}
++
++func checkPathEscapesLstat(r *Root, name string) error {
++	return checkPathEscapes(r, name)
++}
 diff --git a/src/runtime/os_windows.go b/src/runtime/os_windows.go
 index 1688ba910e604a..a096aa2327e13e 100644
 --- a/src/runtime/os_windows.go
