@@ -68,7 +68,6 @@ jobs:
         run: |
           Push-Location .\go\src
           .\make.bat --no-banner
-          ..\bin\go.exe tool dist banner
           Pop-Location
 
       - name: Copy binaries into bin
