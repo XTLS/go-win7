@@ -212,15 +212,7 @@ diff --git a/src/os/root_noopenat.go b/src/os/root_noopenat.go
 index 59f1abe91b0b2e..ecdf264f28d7d6 100644
 --- a/src/os/root_noopenat.go
 +++ b/src/os/root_noopenat.go
-@@ -11,7 +11,6 @@ import (
- 	"internal/filepathlite"
- 	"internal/stringslite"
- 	"sync/atomic"
--	"syscall"
- 	"time"
- )
- 
-@@ -186,30 +185,6 @@ func rootRemove(r *Root, name string) error {
+@@ -186,30 +186,6 @@ func rootRemove(r *Root, name string) error {
  	return nil
  }
  
