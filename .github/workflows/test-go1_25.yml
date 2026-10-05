@@ -69,10 +69,8 @@ jobs:
         shell: pwsh
         run: |
           Push-Location .\go\src
-          setlocal
           .\make.bat --no-banner
           ..\bin\go.exe tool dist banner
-          endlocal
           Pop-Location
 
       - name: Copy binaries into bin
