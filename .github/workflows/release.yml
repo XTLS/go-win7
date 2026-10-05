@@ -16,7 +16,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
       contents: write
     strategy:
@@ -31,10 +31,11 @@ jobs:
       CGO_ENABLED: 0
     steps:
       - name: Show workflow information
+        shell: pwsh
         run: |
-          _NAME="$GOOS-$GOARCH"
-          echo "GOOS: $GOOS, GOARCH: $GOARCH, GOVER: ${{ matrix.buildtarget }}"
-          echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
+          $assetName = "$env:GOOS-$env:GOARCH"
+          Write-Output "GOOS: $env:GOOS, GOARCH: $env:GOARCH, GOVER: ${{ matrix.buildtarget }}"
+          "ASSET_NAME=$assetName" >> $env:GITHUB_ENV
 
       - name: Download source
         uses: actions/checkout@v7
@@ -50,10 +51,11 @@ jobs:
 
       # Patches for Go 1.27.x before more minor changes introduces.
       - name: Apply patch
+        shell: pwsh
         run: |
-          cd ./go
-          patch --verbose -p 1 < ../patch/go-1-27.diff
-          cd ..
+          Push-Location .\go
+          patch --verbose -p 1 -i "..\patch\go-1-27.diff"
+          Pop-Location
 
       - name: Set-up Go
         uses: actions/setup-go@v7
@@ -62,37 +64,34 @@ jobs:
           check-latest: true
 
       - name: Build patched Go
-        shell: bash
+        shell: pwsh
         run: |
-          cd ./go/src
-          . ./make.bash "$@" --no-banner
-          ../bin/go tool dist banner
-          cd ../..
+          Push-Location .\go\src
+          setlocal
+          .\make.bat --no-banner
+          ..\bin\go.exe tool dist banner
+          endlocal
+          Pop-Location
 
       - name: Copy binaries into bin
-        if: matrix.goos != 'linux' || matrix.goarch != 'amd64'
-        shell: bash
+        if: matrix.goos != 'windows' || matrix.goarch != 'amd64'
+        shell: pwsh
         run: |
-          cd ./go/bin
-          DIR="${GOOS}_${GOARCH}"
-          if [ -d "${DIR}" ]; then
-            echo "Found ${DIR} copying binaries"
-            rm ./go*
-            for BINARY in "${DIR}"/*
-            do
-              echo "mv ./${BINARY} ./"
-              mv ./${BINARY} ./
-            done
-            rm -r ./"${DIR}"
-            rm -r ../pkg/tool/linux_amd64/
-          fi
-          cd ..
-          ls -al ./bin
-          cd ..
+          Push-Location .\go\bin
+          $targetDirectory = "${env:GOOS}_${env:GOARCH}"
+          if (Test-Path -LiteralPath $targetDirectory -PathType Container) {
+              Get-ChildItem -Path 'go*' | Remove-Item -Recurse -Force
+              Get-ChildItem -LiteralPath $targetDirectory -Force | Move-Item -Destination .\
+              Remove-Item -LiteralPath $targetDirectory -Recurse -Force
+              Remove-Item -LiteralPath ..\pkg\tool\windows_amd64 -Recurse -Force
+          }
+          Get-ChildItem -Force
+          Pop-Location
 
       - name: Copy License
+        shell: pwsh
         run: |
-          cp -f ./patch/LICENSE ./go/
+          Copy-Item -LiteralPath .\patch\LICENSE -Destination .\go -Force
 
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v7
@@ -103,23 +102,24 @@ jobs:
 
       - name: create ZIP archive
         if: github.event_name == 'release'
-        shell: bash
+        shell: pwsh
         run: |
-          cd ./go/
-          zip -9vr ./go-for-win7-${{ env.ASSET_NAME }}.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go" "./**/testdata"
-          cd ../
+          Push-Location .\go
+          7z a -tzip -mx=9 "-xr!.*" "-xr!*_test.go" "-xr!testdata" "${{ env.ASSET_NAME }}.zip" .
+          Pop-Location
 
       - name: Compute hashes for file
         if: github.event_name == 'release'
+        shell: pwsh
         run: |
-          cd ./go/
-          FILE=./go-for-win7-${{ env.ASSET_NAME }}.zip
-          DGST=$FILE.dgst
-          for METHOD in {"md5","sha1","sha256","sha512"}
-          do
-            openssl dgst -$METHOD $FILE | sed 's/([^)]*)//g' >>$DGST
-          done
-          cd ../
+          Push-Location .\go
+          $archivePath = .\${{ env.ASSET_NAME }}.zip
+          $digestPath = "$archivePath.dgst"
+          foreach ($algorithm in @('MD5', 'SHA1', 'SHA256', 'SHA512')) {
+              $hash = (Get-FileHash -LiteralPath $archivePath -Algorithm $algorithm).Hash
+              Add-Content -LiteralPath $digestPath -Value "$algorithm = $hash"
+          }
+          Pop-Location
 
       - name: Upload packages to release
         uses: svenstaro/upload-release-action@v2

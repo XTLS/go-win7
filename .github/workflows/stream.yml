@@ -5,7 +5,7 @@ on:
 
 jobs:
   format-release:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
       contents: write
     steps:
@@ -26,7 +26,7 @@ jobs:
           prerelease: true
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: format-release
     permissions:
       contents: write
@@ -36,10 +36,11 @@ jobs:
       fail-fast: false
     steps:
       - name: Show workflow information
+        shell: pwsh
         run: |
-          _NAME="go-win7-win6-1.${{ matrix.buildtarget }}"
-          echo "SOURCE PACKET GOVER: 1.${{ matrix.buildtarget }}"
-          echo "ASSET_NAME=$_NAME" >> $GITHUB_ENV
+          $assetName = "go-win7-win6-1.${{ matrix.buildtarget }}"
+          Write-Output "SOURCE PACKET GOVER: 1.${{ matrix.buildtarget }}"
+          "ASSET_NAME=$assetName" >> $env:GITHUB_ENV
 
       - name: Download source
         uses: actions/checkout@v7
@@ -54,14 +55,16 @@ jobs:
           path: 'patch'
 
       - name: Apply patch
+        shell: pwsh
         run: |
-          cd ./go
-          patch --verbose -p 1 < ../patch/go-1-${{ matrix.buildtarget }}.diff
-          cd ..
+          Push-Location .\go
+          patch --verbose -p 1 -i "..\patch\go-1-${{ matrix.buildtarget }}.diff"
+          Pop-Location
 
       - name: Copy License
+        shell: pwsh
         run: |
-          cp -f ./patch/LICENSE ./go/
+          Copy-Item -LiteralPath .\patch\LICENSE -Destination .\go -Force
 
       - name: Upload package to Artifacts
         uses: actions/upload-artifact@v7
@@ -71,22 +74,23 @@ jobs:
             ./go/*
 
       - name: create ZIP archive
-        shell: bash
+        shell: pwsh
         run: |
-          cd ./go/
-          zip -9vr ./${{ env.ASSET_NAME }}.zip . -x "./.*" "./.*/*" "./**/.*" "./**/.*/*" "./**/*_test.go" "./**/testdata"
-          cd ../
+          Push-Location .\go
+          7z a -tzip -mx=9 "-xr!.*" "-xr!*_test.go" "-xr!testdata" "${{ env.ASSET_NAME }}.zip" .
+          Pop-Location
 
       - name: Compute hashes for file
+        shell: pwsh
         run: |
-          cd ./go/
-          FILE=./${{ env.ASSET_NAME }}.zip
-          DGST=$FILE.dgst
-          for METHOD in {"md5","sha1","sha256","sha512"}
-          do
-            openssl dgst -$METHOD $FILE | sed 's/([^)]*)//g' >>$DGST
-          done
-          cd ../
+          Push-Location .\go
+          $archivePath = .\${{ env.ASSET_NAME }}.zip
+          $digestPath = "$archivePath.dgst"
+          foreach ($algorithm in @('MD5', 'SHA1', 'SHA256', 'SHA512')) {
+              $hash = (Get-FileHash -LiteralPath $archivePath -Algorithm $algorithm).Hash
+              Add-Content -LiteralPath $digestPath -Value "$algorithm = $hash"
+          }
+          Pop-Location
 
       - name: Upload packages to release
         uses: svenstaro/upload-release-action@v2
