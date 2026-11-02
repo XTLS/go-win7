@@ -27,3 +27,4 @@ Go 1.27
 
 Go 1.28
 2026-09-11 https://github.com/golang/go/commit/59ea07ba27f521de41bbfab78a6a12f71c2fb17c os: handle unsupported OBJ_DONT_REPARSE on older Windows [related 6d418096b2dfe2a2e47b7aa83b46748fb301e6cb 6d418096b2dfe2a2e47b7aa83b46748fb301e6cb][upstream fix]
+2026-10-16 https://github.com/golang/go/commit/16d46baf6f96b0bd0c8fc1f4a32074f79966a6ed runtime, testing: use a precise monotonic clock on Windows [critical]

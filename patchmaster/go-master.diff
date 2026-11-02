@@ -164,7 +164,7 @@ index 42af4200547b64..209b40547ee786 100644
  	_RtlGetVersion                   stdFunction
  
  	// These are from non-kernel32.dll, so we prefer to LoadLibraryEx them.
-@@ -147,10 +146,10 @@ var (
+@@ -147,11 +146,11 @@ var (
  )
  
  var (
@@ -172,17 +172,19 @@ index 42af4200547b64..209b40547ee786 100644
 -	ntdlldll            = [...]uint16{'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l', 0}
 -	powrprofdll         = [...]uint16{'p', 'o', 'w', 'r', 'p', 'r', 'o', 'f', '.', 'd', 'l', 'l', 0}
 -	winmmdll            = [...]uint16{'w', 'i', 'n', 'm', 'm', '.', 'd', 'l', 'l', 0}
-+	bcryptdll   = [...]uint16{'b', 'c', 'r', 'y', 'p', 't', '.', 'd', 'l', 'l', 0}
-+	ntdlldll    = [...]uint16{'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l', 0}
-+	powrprofdll = [...]uint16{'p', 'o', 'w', 'r', 'p', 'r', 'o', 'f', '.', 'd', 'l', 'l', 0}
-+	winmmdll    = [...]uint16{'w', 'i', 'n', 'm', 'm', '.', 'd', 'l', 'l', 0}
+-	realtimeapisetdll   = [...]uint16{'a', 'p', 'i', '-', 'm', 's', '-', 'w', 'i', 'n', '-', 'c', 'o', 'r', 'e', '-', 'r', 'e', 'a', 'l', 't', 'i', 'm', 'e', '-', 'l', '1', '-', '1', '-', '1', '.', 'd', 'l', 'l', 0}
++	bcryptdll         = [...]uint16{'b', 'c', 'r', 'y', 'p', 't', '.', 'd', 'l', 'l', 0}
++	ntdlldll          = [...]uint16{'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l', 0}
++	powrprofdll       = [...]uint16{'p', 'o', 'w', 'r', 'p', 'r', 'o', 'f', '.', 'd', 'l', 'l', 0}
++	winmmdll          = [...]uint16{'w', 'i', 'n', 'm', 'm', '.', 'd', 'l', 'l', 0}
++	realtimeapisetdll = [...]uint16{'a', 'p', 'i', '-', 'm', 's', '-', 'w', 'i', 'n', '-', 'c', 'o', 'r', 'e', '-', 'r', 'e', 'a', 'l', 't', 'i', 'm', 'e', '-', 'l', '1', '-', '1', '-', '1', '.', 'd', 'l', 'l', 0}
  )
  
  // Function to be called by windows CreateThread
-@@ -270,11 +269,11 @@ func cpu_isProcessorFeaturePresent(processorFeature uint32) bool {
+@@ -270,11 +269,11 @@ func func loadOptionalSyscalls() {
+ 		throw("QueryInterruptTimePrecise not found")
  }
  
- func loadOptionalSyscalls() {
 -	bcryptPrimitives := windowsLoadSystemLib(bcryptprimitivesdll[:])
 -	if bcryptPrimitives == 0 {
 -		throw("bcryptprimitives.dll not found")
