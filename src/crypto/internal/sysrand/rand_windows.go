@@ -7,5 +7,26 @@ package sysrand
 import "internal/syscall/windows"
 
 func read(b []byte) error {
-	return windows.ProcessPrng(b)
+	// BCryptGenRandom only returns 1<<32-1 bytes at a time. We only read at
+	// most 1<<31-1 bytes at a time so that  this works the same on 32-bit
+	// and 64-bit systems.
+	return batched(windows.BCryptGenRandom, 1<<31-1)(b)
+}
+
+// batched returns a function that calls f to populate a []byte by chunking it
+// into subslices of, at most, readMax bytes.
+func batched(f func([]byte) error, readMax int) func([]byte) error {
+	return func(out []byte) error {
+		for len(out) > 0 {
+			read := len(out)
+			if read > readMax {
+				read = readMax
+			}
+			if err := f(out[:read]); err != nil {
+				return err
+			}
+			out = out[read:]
+		}
+		return nil
+	}
 }
