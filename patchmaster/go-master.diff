@@ -1,5 +1,5 @@
 diff --git a/go.env b/go.env
-index 91f1490c15cda3..f7d6007211461d 100644
+index 6ff2b921d464bc..a6ca5156938b88 100644
 --- a/go.env
 +++ b/go.env
 @@ -7,6 +7,6 @@
@@ -12,10 +12,10 @@ index 91f1490c15cda3..f7d6007211461d 100644
 -GOTOOLCHAIN=auto
 +GOTOOLCHAIN=local
 diff --git a/src/cmd/link/internal/ld/pe.go b/src/cmd/link/internal/ld/pe.go
-index 8376ddefe56bb7..bd12916d4e9dcb 100644
+index 3236e78348cc6c..47037111bc7ed7 100644
 --- a/src/cmd/link/internal/ld/pe.go
 +++ b/src/cmd/link/internal/ld/pe.go
-@@ -282,7 +282,7 @@ type IMAGE_LOAD_CONFIG_DIRECTORY64 struct {
+@@ -300,7 +300,7 @@ type IMAGE_LOAD_CONFIG_DIRECTORY64 struct {
  }
  
  const (
@@ -70,10 +70,10 @@ index 018fe013cef600..8c97d05b44323c 100644
  //   - On wasip1/wasm, Reader uses random_get.
  //
 diff --git a/src/internal/syscall/windows/syscall_windows.go b/src/internal/syscall/windows/syscall_windows.go
-index a6806c321701d0..bb6e7fcaa97651 100644
+index d5044c56dcba08..f73f114b72c7ba 100644
 --- a/src/internal/syscall/windows/syscall_windows.go
 +++ b/src/internal/syscall/windows/syscall_windows.go
-@@ -421,7 +421,7 @@ func ErrorLoadingGetTempPath2() error {
+@@ -423,7 +423,7 @@ func ErrorLoadingGetTempPath2() error {
  //sys	DestroyEnvironmentBlock(block *uint16) (err error) = userenv.DestroyEnvironmentBlock
  //sys	CreateEvent(eventAttrs *SecurityAttributes, manualReset uint32, initialState uint32, name *uint16) (handle syscall.Handle, err error) = kernel32.CreateEventW
  
@@ -83,34 +83,18 @@ index a6806c321701d0..bb6e7fcaa97651 100644
  type FILE_ID_BOTH_DIR_INFO struct {
  	NextEntryOffset uint32
 diff --git a/src/internal/syscall/windows/zsyscall_windows.go b/src/internal/syscall/windows/zsyscall_windows.go
-index 5bc228e63069ca..c910a8b96c8be8 100644
+index 9a782c5d5d8218..d089c859e9c381 100644
 --- a/src/internal/syscall/windows/zsyscall_windows.go
 +++ b/src/internal/syscall/windows/zsyscall_windows.go
-@@ -37,15 +37,15 @@ func errnoErr(e syscall.Errno) error {
- }
+@@ -38,7 +38,7 @@ func errnoErr(e syscall.Errno) error {
  
  var (
--	modadvapi32         = syscall.NewLazyDLL(sysdll.Add("advapi32.dll"))
+ 	modadvapi32         = syscall.NewLazyDLL(sysdll.Add("advapi32.dll"))
 -	modbcryptprimitives = syscall.NewLazyDLL(sysdll.Add("bcryptprimitives.dll"))
--	modiphlpapi         = syscall.NewLazyDLL(sysdll.Add("iphlpapi.dll"))
--	modkernel32         = syscall.NewLazyDLL(sysdll.Add("kernel32.dll"))
--	modnetapi32         = syscall.NewLazyDLL(sysdll.Add("netapi32.dll"))
--	modntdll            = syscall.NewLazyDLL(sysdll.Add("ntdll.dll"))
--	modpsapi            = syscall.NewLazyDLL(sysdll.Add("psapi.dll"))
--	moduserenv          = syscall.NewLazyDLL(sysdll.Add("userenv.dll"))
--	modws2_32           = syscall.NewLazyDLL(sysdll.Add("ws2_32.dll"))
-+	modadvapi32 = syscall.NewLazyDLL(sysdll.Add("advapi32.dll"))
-+	modbcrypt   = syscall.NewLazyDLL(sysdll.Add("bcrypt.dll"))
-+	modiphlpapi = syscall.NewLazyDLL(sysdll.Add("iphlpapi.dll"))
-+	modkernel32 = syscall.NewLazyDLL(sysdll.Add("kernel32.dll"))
-+	modnetapi32 = syscall.NewLazyDLL(sysdll.Add("netapi32.dll"))
-+	modntdll    = syscall.NewLazyDLL(sysdll.Add("ntdll.dll"))
-+	modpsapi    = syscall.NewLazyDLL(sysdll.Add("psapi.dll"))
-+	moduserenv  = syscall.NewLazyDLL(sysdll.Add("userenv.dll"))
-+	modws2_32   = syscall.NewLazyDLL(sysdll.Add("ws2_32.dll"))
- 
- 	procAdjustTokenPrivileges             = modadvapi32.NewProc("AdjustTokenPrivileges")
- 	procDuplicateTokenEx                  = modadvapi32.NewProc("DuplicateTokenEx")
++	modbcrypt           = syscall.NewLazyDLL(sysdll.Add("bcrypt.dll"))
+ 	modiphlpapi         = syscall.NewLazyDLL(sysdll.Add("iphlpapi.dll"))
+ 	modkernel32         = syscall.NewLazyDLL(sysdll.Add("kernel32.dll"))
+ 	modnetapi32         = syscall.NewLazyDLL(sysdll.Add("netapi32.dll"))
 @@ -65,7 +65,7 @@ var (
  	procSetEntriesInAclW                  = modadvapi32.NewProc("SetEntriesInAclW")
  	procSetNamedSecurityInfoW             = modadvapi32.NewProc("SetNamedSecurityInfoW")
@@ -118,9 +102,9 @@ index 5bc228e63069ca..c910a8b96c8be8 100644
 -	procProcessPrng                       = modbcryptprimitives.NewProc("ProcessPrng")
 +	procBCryptGenRandom                   = modbcrypt.NewProc("BCryptGenRandom")
  	procGetAdaptersAddresses              = modiphlpapi.NewProc("GetAdaptersAddresses")
+ 	procCancelSynchronousIo               = modkernel32.NewProc("CancelSynchronousIo")
  	procCreateEventW                      = modkernel32.NewProc("CreateEventW")
- 	procCreateIoCompletionPort            = modkernel32.NewProc("CreateIoCompletionPort")
-@@ -272,13 +272,17 @@ func SetTokenInformation(tokenHandle syscall.Token, tokenInformationClass uint32
+@@ -273,13 +273,17 @@ func SetTokenInformation(tokenHandle syscall.Token, tokenInformationClass uint32
  	return
  }
  
@@ -142,10 +126,10 @@ index 5bc228e63069ca..c910a8b96c8be8 100644
  	}
  	return
 diff --git a/src/runtime/os_windows.go b/src/runtime/os_windows.go
-index 42af4200547b64..209b40547ee786 100644
+index 59ca989f1ddb8c..5b8aaff57be9f2 100644
 --- a/src/runtime/os_windows.go
 +++ b/src/runtime/os_windows.go
-@@ -128,8 +128,8 @@ var (
+@@ -126,8 +126,8 @@ var (
  	_WriteFile,
  	_ stdFunction
  
@@ -154,9 +138,9 @@ index 42af4200547b64..209b40547ee786 100644
 +	// Use BCryptGenRandom to generate cryptographically random data.
 +	_BCryptGenRandom stdFunction
  
- 	// Load ntdll.dll manually during startup, otherwise Mingw
- 	// links wrong printf function to cgo executable (see issue
-@@ -137,7 +137,6 @@ var (
+ 	// Initialized by osinit before schedinit calls nanotime. Used without
+ 	// the per-M state or LastError changes made by stdcall.
+@@ -139,7 +139,6 @@ var (
  	_NtCreateWaitCompletionPacket    stdFunction
  	_NtAssociateWaitCompletionPacket stdFunction
  	_NtCancelWaitCompletionPacket    stdFunction
@@ -164,26 +148,50 @@ index 42af4200547b64..209b40547ee786 100644
  	_RtlGetVersion                   stdFunction
  
  	// These are from non-kernel32.dll, so we prefer to LoadLibraryEx them.
-@@ -147,11 +146,11 @@ var (
+@@ -149,7 +148,7 @@ var (
  )
  
  var (
 -	bcryptprimitivesdll = [...]uint16{'b', 'c', 'r', 'y', 'p', 't', 'p', 'r', 'i', 'm', 'i', 't', 'i', 'v', 'e', 's', '.', 'd', 'l', 'l', 0}
--	ntdlldll            = [...]uint16{'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l', 0}
--	powrprofdll         = [...]uint16{'p', 'o', 'w', 'r', 'p', 'r', 'o', 'f', '.', 'd', 'l', 'l', 0}
--	winmmdll            = [...]uint16{'w', 'i', 'n', 'm', 'm', '.', 'd', 'l', 'l', 0}
--	realtimeapisetdll   = [...]uint16{'a', 'p', 'i', '-', 'm', 's', '-', 'w', 'i', 'n', '-', 'c', 'o', 'r', 'e', '-', 'r', 'e', 'a', 'l', 't', 'i', 'm', 'e', '-', 'l', '1', '-', '1', '-', '1', '.', 'd', 'l', 'l', 0}
-+	bcryptdll         = [...]uint16{'b', 'c', 'r', 'y', 'p', 't', '.', 'd', 'l', 'l', 0}
-+	ntdlldll          = [...]uint16{'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l', 0}
-+	powrprofdll       = [...]uint16{'p', 'o', 'w', 'r', 'p', 'r', 'o', 'f', '.', 'd', 'l', 'l', 0}
-+	winmmdll          = [...]uint16{'w', 'i', 'n', 'm', 'm', '.', 'd', 'l', 'l', 0}
-+	realtimeapisetdll = [...]uint16{'a', 'p', 'i', '-', 'm', 's', '-', 'w', 'i', 'n', '-', 'c', 'o', 'r', 'e', '-', 'r', 'e', 'a', 'l', 't', 'i', 'm', 'e', '-', 'l', '1', '-', '1', '-', '1', '.', 'd', 'l', 'l', 0}
- )
++	bcryptdll           = [...]uint16{'b', 'c', 'r', 'y', 'p', 't', '.', 'd', 'l', 'l', 0}
+ 	ntdlldll            = [...]uint16{'n', 't', 'd', 'l', 'l', '.', 'd', 'l', 'l', 0}
+ 	powrprofdll         = [...]uint16{'p', 'o', 'w', 'r', 'p', 'r', 'o', 'f', '.', 'd', 'l', 'l', 0}
+ 	winmmdll            = [...]uint16{'w', 'i', 'n', 'm', 'm', '.', 'd', 'l', 'l', 0}
+@@ -246,6 +245,9 @@ func windows_QueryPerformanceFrequency() int64 {
+ //
+ //go:nosplit
+ func nanotime1() int64 {
++	if useLegacyInterruptTime {
++		return nanotimel()
++	}
+ 	gp := getg()
+ 	if gp == nil || gp.m == nil || gp.m.profilehz == 0 || gp.m.libcallsp != 0 {
+ 		return nanotime2()
+@@ -262,6 +264,10 @@ func nanotime1() int64 {
  
- // Function to be called by windows CreateThread
-@@ -270,11 +269,11 @@ func func loadOptionalSyscalls() {
- 		throw("QueryInterruptTimePrecise not found")
- }
+ func nanotime2() int64
+ 
++var useLegacyInterruptTime = false
++
++func nanotimel() int64
++
+ //go:linknamestd cpu_isProcessorFeaturePresent internal/cpu.isProcessorFeaturePresent
+ func cpu_isProcessorFeaturePresent(processorFeature uint32) bool {
+ 	ret := stdcall(_IsProcessorFeaturePresent, uintptr(processorFeature))
+@@ -273,19 +279,18 @@ func loadOptionalSyscalls() {
+ 	// but it is not exported from kernel32.dll on every architecture.
+ 	// Resolve it before schedinit calls nanotime to initialize the clocks.
+ 	realtime := windowsLoadSystemLib(realtimeapisetdll[:])
+-	if realtime == 0 {
+-		throw("could not load realtime API set")
++	if realtime != 0 {
++		_QueryInterruptTimePrecise = windowsFindfunc(realtime, []byte("QueryInterruptTimePrecise\000"))
+ 	}
+-	_QueryInterruptTimePrecise = windowsFindfunc(realtime, []byte("QueryInterruptTimePrecise\000"))
+ 	if _QueryInterruptTimePrecise == nil {
+-		throw("QueryInterruptTimePrecise not found")
++		useLegacyInterruptTime = true
+ 	}
  
 -	bcryptPrimitives := windowsLoadSystemLib(bcryptprimitivesdll[:])
 -	if bcryptPrimitives == 0 {
@@ -197,7 +205,7 @@ index 42af4200547b64..209b40547ee786 100644
  
  	n32 := windowsLoadSystemLib(ntdlldll[:])
  	if n32 == 0 {
-@@ -292,7 +291,6 @@ func loadOptionalSyscalls() {
+@@ -303,7 +308,6 @@ func loadOptionalSyscalls() {
  			throw("NtCreateWaitCompletionPacket exists but NtCancelWaitCompletionPacket does not")
  		}
  	}
@@ -205,7 +213,7 @@ index 42af4200547b64..209b40547ee786 100644
  	_RtlGetVersion = windowsFindfunc(n32, []byte("RtlGetVersion\000"))
  }
  
-@@ -444,26 +442,27 @@ var canUseLongPaths bool
+@@ -455,26 +459,7 @@ var canUseLongPaths bool
  
  // initLongPathSupport enables long path support.
  func initLongPathSupport() {
@@ -213,20 +221,11 @@ index 42af4200547b64..209b40547ee786 100644
 -		IsLongPathAwareProcess = 0x80
 -		PebBitFieldOffset      = 3
 -	)
-+	canUseLongPaths = false
-+}
- 
+-
 -	// Check that we're ≥ 10.0.15063.
-+var osVersionInfo struct {
-+	majorVersion uint32
-+	minorVersion uint32
-+	buildNumber  uint32
-+}
-+
-+func initOsVersionInfo() {
- 	info := windows.OSVERSIONINFOW{}
- 	info.OSVersionInfoSize = uint32(unsafe.Sizeof(info))
- 	stdcall(_RtlGetVersion, uintptr(unsafe.Pointer(&info)))
+-	info := windows.OSVERSIONINFOW{}
+-	info.OSVersionInfoSize = uint32(unsafe.Sizeof(info))
+-	stdcall(_RtlGetVersion, uintptr(unsafe.Pointer(&info)))
 -	if info.MajorVersion < 10 || (info.MajorVersion == 10 && info.MinorVersion == 0 && info.BuildNumber < 15063) {
 -		return
 -	}
@@ -236,19 +235,13 @@ index 42af4200547b64..209b40547ee786 100644
 -	// by Windows to enable long path support.
 -	bitField := (*byte)(unsafe.Pointer(stdcall(_RtlGetCurrentPeb) + PebBitFieldOffset))
 -	*bitField |= IsLongPathAwareProcess
-+	osVersionInfo.majorVersion = info.MajorVersion
-+	osVersionInfo.minorVersion = info.MinorVersion
-+	osVersionInfo.buildNumber = info.BuildNumber
-+}
- 
+-
 -	canUseLongPaths = true
-+//go:linkname getNtVersionInfo syscall.getNtVersionInfo
-+func getNtVersionInfo() (uint32, uint32, uint32) {
-+	return osVersionInfo.majorVersion, osVersionInfo.minorVersion, osVersionInfo.buildNumber
++	canUseLongPaths = false
  }
  
  func osinit() {
-@@ -480,6 +479,7 @@ func osinit() {
+@@ -491,6 +476,7 @@ func osinit() {
  
  	initSysDirectory()
  	initLongPathSupport()
@@ -256,7 +249,7 @@ index 42af4200547b64..209b40547ee786 100644
  
  	numCPUStartup = getCPUCount()
  
-@@ -495,7 +495,11 @@ func osinit() {
+@@ -506,7 +492,11 @@ func osinit() {
  //go:nosplit
  func readRandom(r []byte) int {
  	n := 0
@@ -269,21 +262,154 @@ index 42af4200547b64..209b40547ee786 100644
  		n = len(r)
  	}
  	return n
+@@ -1393,3 +1383,23 @@ func preemptM(gp *g) {
+ 	releaseLockRankAndM(threadPausedLockRank)
+ 	casfrom_Gscanstatus(gp, _Gscanrunning, _Grunning)
+ }
++
++var osVersionInfo struct {
++	majorVersion uint32
++	minorVersion uint32
++	buildNumber  uint32
++}
++
++func initOsVersionInfo() {
++	info := windows.OSVERSIONINFOW{}
++	info.OSVersionInfoSize = uint32(unsafe.Sizeof(info))
++	stdcall(_RtlGetVersion, uintptr(unsafe.Pointer(&info)))
++	osVersionInfo.majorVersion = info.MajorVersion
++	osVersionInfo.minorVersion = info.MinorVersion
++	osVersionInfo.buildNumber = info.BuildNumber
++}
++
++//go:linkname getNtVersionInfo syscall.getNtVersionInfo
++func getNtVersionInfo() (uint32, uint32, uint32) {
++	return osVersionInfo.majorVersion, osVersionInfo.minorVersion, osVersionInfo.buildNumber
++}
+diff --git a/src/runtime/runtime.go b/src/runtime/runtime.go
+index 0120bcd1ca5f89..75f87e4c235f0c 100644
+--- a/src/runtime/runtime.go
++++ b/src/runtime/runtime.go
+@@ -93,7 +93,7 @@ func ticksPerSecond() int64 {
+ 		nowTicks := cputicks()
+ 
+ 		// See if we can use these times.
+-		if nowTicks > ticks.startTicks && nowTime-ticks.startTime > minTimeForTicksPerSecond {
++		if nowTicks > ticks.startTicks && (nowTime-ticks.startTime > minTimeForTicksPerSecond || nowTime-ticks.startTime > 100_000_000) {
+ 			// Perform the calculation with floats. We don't want to risk overflow.
+ 			r = int64(float64(nowTicks-ticks.startTicks) * 1e9 / float64(nowTime-ticks.startTime))
+ 			if r == 0 {
+diff --git a/src/runtime/sys_windows_386.s b/src/runtime/sys_windows_386.s
+index 0f1fa626cdf33a..2fbbf0b1bb336c 100644
+--- a/src/runtime/sys_windows_386.s
++++ b/src/runtime/sys_windows_386.s
+@@ -6,6 +6,7 @@
+ #include "go_tls.h"
+ #include "textflag.h"
+ #include "funcdata.h"
++#include "time_windows.h"
+ 
+ // faster get/set last error
+ TEXT runtime·getlasterror(SB),NOSPLIT,$0
+@@ -189,6 +190,23 @@ TEXT runtime·nanotime2(SB),NOSPLIT,$24-8
+ 	MOVL	DX, ret_hi+4(FP)
+ 	RET
+ 
++TEXT runtime·nanotimel(SB),NOSPLIT,$0-8
++loop:
++	MOVL	(_INTERRUPT_TIME+time_hi1), AX
++	MOVL	(_INTERRUPT_TIME+time_lo), CX
++	MOVL	(_INTERRUPT_TIME+time_hi2), DI
++	CMPL	AX, DI
++	JNE	loop
++	// wintime = DI:CX, multiply by 100
++	MOVL	$100, AX
++	MULL	CX
++	IMULL	$100, DI
++	ADDL	DI, DX
++	// wintime*100 = DX:AX
++	MOVL	AX, ret_lo+0(FP)
++	MOVL	DX, ret_hi+4(FP)
++	RET
++
+ // Called on the system stack using the C calling convention. Adapt the
+ // stdcall callee's stack cleanup and preserve the caller's LastError.
+ TEXT nanotime_trampoline<>(SB),NOSPLIT,$8-4
+diff --git a/src/runtime/sys_windows_amd64.s b/src/runtime/sys_windows_amd64.s
+index 7092c607e9a9a3..cf421e60fc2187 100644
+--- a/src/runtime/sys_windows_amd64.s
++++ b/src/runtime/sys_windows_amd64.s
+@@ -6,6 +6,7 @@
+ #include "go_tls.h"
+ #include "textflag.h"
+ #include "funcdata.h"
++#include "time_windows.h"
+ #include "cgo/abi_amd64.h"
+ 
+ // faster get/set last error
+@@ -210,3 +211,10 @@ TEXT runtime·nanotime2<ABIInternal>(SB),NOSPLIT,$32-0
+ 	MOVQ	24(SP), AX
+ 	IMULQ	$100, AX
+ 	RET
++
++TEXT runtime·nanotimel(SB),NOSPLIT,$0-8
++	MOVQ	$_INTERRUPT_TIME, DI
++	MOVQ	time_lo(DI), AX
++	IMULQ	$100, AX
++	MOVQ	AX, ret+0(FP)
++	RET
+diff --git a/src/runtime/sys_windows_arm64.s b/src/runtime/sys_windows_arm64.s
+index 7b4e6b90f275fc..3ea499749b27e5 100644
+--- a/src/runtime/sys_windows_arm64.s
++++ b/src/runtime/sys_windows_arm64.s
+@@ -6,6 +6,7 @@
+ #include "go_tls.h"
+ #include "textflag.h"
+ #include "funcdata.h"
++#include "time_windows.h"
+ #include "cgo/abi_arm64.h"
+ 
+ // Offsets into Thread Environment Block (pointer in R18)
+@@ -161,3 +162,10 @@ TEXT runtime·nanotime2<ABIInternal>(SB),NOSPLIT,$40-0
+ 	MUL	R1, R0
+ 	RET
+ 
++TEXT runtime·nanotimel(SB),NOSPLIT,$0-8
++	MOVD	$_INTERRUPT_TIME, R3
++	MOVD	time_lo(R3), R0
++	MOVD	$100, R1
++	MUL	R1, R0
++	MOVD	R0, ret+0(FP)
++	RET
+diff --git a/src/runtime/tracetime.go b/src/runtime/tracetime.go
+index 94e1b29500336e..0405930c172c65 100644
+--- a/src/runtime/tracetime.go
++++ b/src/runtime/tracetime.go
+@@ -37,6 +37,9 @@ type traceTime uint64
+ //go:linkname traceClockNow
+ //go:nosplit
+ func traceClockNow() traceTime {
++	if useLegacyInterruptTime {
++		return traceTime(cputicks() / 256)
++	}
+ 	return traceTime(nanotime() / traceTimeDiv)
+ }
+ 
+@@ -45,6 +48,9 @@ func traceClockNow() traceTime {
+ //
+ //go:linkname traceClockUnitsPerSecond runtime/trace.runtime_traceClockUnitsPerSecond
+ func traceClockUnitsPerSecond() uint64 {
++	if useLegacyInterruptTime {
++		return uint64(ticksPerSecond() / 256)
++	}
+ 	return 1e9 / traceTimeDiv
+ }
+ 
 diff --git a/src/syscall/exec_windows.go b/src/syscall/exec_windows.go
-index 96089fcd93a634..361c005dc5a002 100644
+index c1e24efa594c1d..fc40aaa4da3e0d 100644
 --- a/src/syscall/exec_windows.go
 +++ b/src/syscall/exec_windows.go
-@@ -304,6 +304,9 @@ type SysProcAttr struct {
- var zeroProcAttr ProcAttr
- var zeroSysProcAttr SysProcAttr
- 
-+//go:linkname getNtVersionInfo
-+func getNtVersionInfo() (uint32, uint32, uint32)
-+
- func StartProcess(argv0 string, argv []string, attr *ProcAttr) (pid int, handle uintptr, err error) {
- 	if len(argv0) == 0 {
- 		return 0, 0, EWINDOWS
-@@ -367,6 +370,16 @@ func StartProcess(argv0 string, argv []string, attr *ProcAttr) (pid int, handle
+@@ -421,6 +421,16 @@ func StartProcess(argv0 string, argv []string, attr *ProcAttr) (pid int, handle
  		}
  	}
  
@@ -300,7 +426,7 @@ index 96089fcd93a634..361c005dc5a002 100644
  	p, _ := GetCurrentProcess()
  	parentProcess := p
  	if sys.ParentProcess != 0 {
-@@ -375,7 +388,15 @@ func StartProcess(argv0 string, argv []string, attr *ProcAttr) (pid int, handle
+@@ -429,7 +439,15 @@ func StartProcess(argv0 string, argv []string, attr *ProcAttr) (pid int, handle
  	fd := make([]Handle, len(attr.Files))
  	for i := range attr.Files {
  		if attr.Files[i] > 0 {
@@ -317,7 +443,7 @@ index 96089fcd93a634..361c005dc5a002 100644
  			if err != nil {
  				return 0, 0, err
  			}
-@@ -406,6 +427,14 @@ func StartProcess(argv0 string, argv []string, attr *ProcAttr) (pid int, handle
+@@ -460,6 +478,14 @@ func StartProcess(argv0 string, argv []string, attr *ProcAttr) (pid int, handle
  
  	fd = append(fd, sys.AdditionalInheritedHandles...)
  
@@ -332,3 +458,10 @@ index 96089fcd93a634..361c005dc5a002 100644
  	// The presence of a NULL handle in the list is enough to cause PROC_THREAD_ATTRIBUTE_HANDLE_LIST
  	// to treat the entire list as empty, so remove NULL handles.
  	j := 0
+@@ -539,3 +565,6 @@ func asciiLower(b byte) byte {
+ func Exec(argv0 string, argv []string, envv []string) (err error) {
+ 	return EWINDOWS
+ }
++
++//go:linkname getNtVersionInfo
++func getNtVersionInfo() (uint32, uint32, uint32)

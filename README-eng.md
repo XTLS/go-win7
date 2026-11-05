@@ -183,6 +183,7 @@ Current situation: In reality, `RtlGenRandom` has a known security issue related
 
 - Lock SDK to a local one and never download a different one (new deployment only)
 - Remove PEB hack for long path support (adapted from Microsoft Go)
+- Partial fallback to `KUSER_SHARED_DATA.InterruptTime` when `QueryInterruptTimePrecise` is not available
 - Fix PE header locking on minimum Windows NT 10.0
 - Use `BCryptGenRandom` as a compatible substitution of `ProcessPrng`
 - Fix removed console handle workaround for legacy Windows

@@ -184,5 +184,6 @@
 - 指示 SDK 只能使用本地版本而不会自动下载其它版本（仅限新部署）
 - 移除使用劫持进程环境块开启的长文件名支持（移植自 Microsoft Go）
 - 修复 PE 头部最小加载版本为 Windows NT 10.0 后的问题
+- 当 `QueryInterruptTimePrecise` 不可用时部分回落到 `KUSER_SHARED_DATA.InterruptTime`
 - 使用 `BCryptGenRandom` 替换 `ProcessPrng`
 - 修复因移除针对旧版 Windows 控制台的额外措施导致可能发生的控制台异常
