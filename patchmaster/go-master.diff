@@ -126,7 +126,7 @@ index 9a782c5d5d8218..d089c859e9c381 100644
  	}
  	return
 diff --git a/src/runtime/os_windows.go b/src/runtime/os_windows.go
-index 59ca989f1ddb8c..5b8aaff57be9f2 100644
+index 59ca989f1ddb8c..58f3ac2dd5da2d 100644
 --- a/src/runtime/os_windows.go
 +++ b/src/runtime/os_windows.go
 @@ -126,8 +126,8 @@ var (
@@ -167,18 +167,16 @@ index 59ca989f1ddb8c..5b8aaff57be9f2 100644
  	gp := getg()
  	if gp == nil || gp.m == nil || gp.m.profilehz == 0 || gp.m.libcallsp != 0 {
  		return nanotime2()
-@@ -262,6 +264,10 @@ func nanotime1() int64 {
+@@ -262,6 +264,8 @@ func nanotime1() int64 {
  
  func nanotime2() int64
  
-+var useLegacyInterruptTime = false
-+
 +func nanotimel() int64
 +
  //go:linknamestd cpu_isProcessorFeaturePresent internal/cpu.isProcessorFeaturePresent
  func cpu_isProcessorFeaturePresent(processorFeature uint32) bool {
  	ret := stdcall(_IsProcessorFeaturePresent, uintptr(processorFeature))
-@@ -273,19 +279,18 @@ func loadOptionalSyscalls() {
+@@ -273,19 +277,18 @@ func loadOptionalSyscalls() {
  	// but it is not exported from kernel32.dll on every architecture.
  	// Resolve it before schedinit calls nanotime to initialize the clocks.
  	realtime := windowsLoadSystemLib(realtimeapisetdll[:])
@@ -205,7 +203,7 @@ index 59ca989f1ddb8c..5b8aaff57be9f2 100644
  
  	n32 := windowsLoadSystemLib(ntdlldll[:])
  	if n32 == 0 {
-@@ -303,7 +308,6 @@ func loadOptionalSyscalls() {
+@@ -303,7 +306,6 @@ func loadOptionalSyscalls() {
  			throw("NtCreateWaitCompletionPacket exists but NtCancelWaitCompletionPacket does not")
  		}
  	}
@@ -213,7 +211,7 @@ index 59ca989f1ddb8c..5b8aaff57be9f2 100644
  	_RtlGetVersion = windowsFindfunc(n32, []byte("RtlGetVersion\000"))
  }
  
-@@ -455,26 +459,7 @@ var canUseLongPaths bool
+@@ -455,26 +457,7 @@ var canUseLongPaths bool
  
  // initLongPathSupport enables long path support.
  func initLongPathSupport() {
@@ -241,7 +239,7 @@ index 59ca989f1ddb8c..5b8aaff57be9f2 100644
  }
  
  func osinit() {
-@@ -491,6 +476,7 @@ func osinit() {
+@@ -491,6 +474,7 @@ func osinit() {
  
  	initSysDirectory()
  	initLongPathSupport()
@@ -249,7 +247,7 @@ index 59ca989f1ddb8c..5b8aaff57be9f2 100644
  
  	numCPUStartup = getCPUCount()
  
-@@ -506,7 +492,11 @@ func osinit() {
+@@ -506,7 +490,11 @@ func osinit() {
  //go:nosplit
  func readRandom(r []byte) int {
  	n := 0
@@ -262,7 +260,7 @@ index 59ca989f1ddb8c..5b8aaff57be9f2 100644
  		n = len(r)
  	}
  	return n
-@@ -1393,3 +1383,23 @@ func preemptM(gp *g) {
+@@ -1393,3 +1381,23 @@ func preemptM(gp *g) {
  	releaseLockRankAndM(threadPausedLockRank)
  	casfrom_Gscanstatus(gp, _Gscanrunning, _Grunning)
  }
@@ -286,6 +284,16 @@ index 59ca989f1ddb8c..5b8aaff57be9f2 100644
 +func getNtVersionInfo() (uint32, uint32, uint32) {
 +	return osVersionInfo.majorVersion, osVersionInfo.minorVersion, osVersionInfo.buildNumber
 +}
+diff --git a/src/runtime/proc.go b/src/runtime/proc.go
+index cfa68d3bc1da73..02c227dcfd7f4e 100644
+--- a/src/runtime/proc.go
++++ b/src/runtime/proc.go
+@@ -8199,3 +8199,5 @@ func doInit1(t *initTask) {
+ 		t.state = 2 // initialization done
+ 	}
+ }
++
++var useLegacyInterruptTime = false
 diff --git a/src/runtime/runtime.go b/src/runtime/runtime.go
 index 0120bcd1ca5f89..75f87e4c235f0c 100644
 --- a/src/runtime/runtime.go
