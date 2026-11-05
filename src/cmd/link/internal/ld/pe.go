@@ -300,7 +300,7 @@ type IMAGE_LOAD_CONFIG_DIRECTORY64 struct {
 }
 
 const (
-	PeMinimumTargetMajorVersion = 10
+	PeMinimumTargetMajorVersion = 6
 	PeMinimumTargetMinorVersion = 0
 )
 
