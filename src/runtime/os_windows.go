@@ -264,8 +264,6 @@ func nanotime1() int64 {
 
 func nanotime2() int64
 
-var useLegacyInterruptTime = false
-
 func nanotimel() int64
 
 //go:linknamestd cpu_isProcessorFeaturePresent internal/cpu.isProcessorFeaturePresent

@@ -8199,3 +8199,5 @@ func doInit1(t *initTask) {
 		t.state = 2 // initialization done
 	}
 }
+
+var useLegacyInterruptTime = false
