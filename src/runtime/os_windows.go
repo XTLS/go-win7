@@ -476,6 +476,7 @@ func osinit() {
 
 	initSysDirectory()
 	initLongPathSupport()
+	initOsVersionInfo()
 
 	numCPUStartup = getCPUCount()
 
@@ -1381,4 +1382,24 @@ func preemptM(gp *g) {
 
 	releaseLockRankAndM(threadPausedLockRank)
 	casfrom_Gscanstatus(gp, _Gscanrunning, _Grunning)
+}
+
+var osVersionInfo struct {
+	majorVersion uint32
+	minorVersion uint32
+	buildNumber  uint32
+}
+
+func initOsVersionInfo() {
+	info := windows.OSVERSIONINFOW{}
+	info.OSVersionInfoSize = uint32(unsafe.Sizeof(info))
+	stdcall(_RtlGetVersion, uintptr(unsafe.Pointer(&info)))
+	osVersionInfo.majorVersion = info.MajorVersion
+	osVersionInfo.minorVersion = info.MinorVersion
+	osVersionInfo.buildNumber = info.BuildNumber
+}
+
+//go:linkname getNtVersionInfo syscall.getNtVersionInfo
+func getNtVersionInfo() (uint32, uint32, uint32) {
+	return osVersionInfo.majorVersion, osVersionInfo.minorVersion, osVersionInfo.buildNumber
 }
