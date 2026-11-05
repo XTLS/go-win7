@@ -93,7 +93,7 @@ func ticksPerSecond() int64 {
 		nowTicks := cputicks()
 
 		// See if we can use these times.
-		if nowTicks > ticks.startTicks && nowTime-ticks.startTime > minTimeForTicksPerSecond {
+		if nowTicks > ticks.startTicks && (nowTime-ticks.startTime > minTimeForTicksPerSecond || nowTime-ticks.startTime > 100_000_000) {
 			// Perform the calculation with floats. We don't want to risk overflow.
 			r = int64(float64(nowTicks-ticks.startTicks) * 1e9 / float64(nowTime-ticks.startTime))
 			if r == 0 {

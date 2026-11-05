@@ -6,6 +6,7 @@
 #include "go_tls.h"
 #include "textflag.h"
 #include "funcdata.h"
+#include "time_windows.h"
 
 // faster get/set last error
 TEXT runtime·getlasterror(SB),NOSPLIT,$0
@@ -179,6 +180,23 @@ TEXT runtime·nanotime2(SB),NOSPLIT,$24-8
 	MOVL	16(SP), CX
 	MOVL	20(SP), DI
 
+	// wintime = DI:CX, multiply by 100
+	MOVL	$100, AX
+	MULL	CX
+	IMULL	$100, DI
+	ADDL	DI, DX
+	// wintime*100 = DX:AX
+	MOVL	AX, ret_lo+0(FP)
+	MOVL	DX, ret_hi+4(FP)
+	RET
+
+TEXT runtime·nanotimel(SB),NOSPLIT,$0-8
+loop:
+	MOVL	(_INTERRUPT_TIME+time_hi1), AX
+	MOVL	(_INTERRUPT_TIME+time_lo), CX
+	MOVL	(_INTERRUPT_TIME+time_hi2), DI
+	CMPL	AX, DI
+	JNE	loop
 	// wintime = DI:CX, multiply by 100
 	MOVL	$100, AX
 	MULL	CX

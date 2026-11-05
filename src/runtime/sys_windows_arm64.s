@@ -6,6 +6,7 @@
 #include "go_tls.h"
 #include "textflag.h"
 #include "funcdata.h"
+#include "time_windows.h"
 #include "cgo/abi_arm64.h"
 
 // Offsets into Thread Environment Block (pointer in R18)
@@ -161,3 +162,10 @@ TEXT runtime·nanotime2<ABIInternal>(SB),NOSPLIT,$40-0
 	MUL	R1, R0
 	RET
 
+TEXT runtime·nanotimel(SB),NOSPLIT,$0-8
+	MOVD	$_INTERRUPT_TIME, R3
+	MOVD	time_lo(R3), R0
+	MOVD	$100, R1
+	MUL	R1, R0
+	MOVD	R0, ret+0(FP)
+	RET

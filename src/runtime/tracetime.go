@@ -37,6 +37,9 @@ type traceTime uint64
 //go:linkname traceClockNow
 //go:nosplit
 func traceClockNow() traceTime {
+	if useLegacyInterruptTime {
+		return traceTime(cputicks() / 256)
+	}
 	return traceTime(nanotime() / traceTimeDiv)
 }
 
@@ -45,6 +48,9 @@ func traceClockNow() traceTime {
 //
 //go:linkname traceClockUnitsPerSecond runtime/trace.runtime_traceClockUnitsPerSecond
 func traceClockUnitsPerSecond() uint64 {
+	if useLegacyInterruptTime {
+		return uint64(ticksPerSecond() / 256)
+	}
 	return 1e9 / traceTimeDiv
 }
 

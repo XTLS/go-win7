@@ -245,6 +245,9 @@ func windows_QueryPerformanceFrequency() int64 {
 //
 //go:nosplit
 func nanotime1() int64 {
+	if useLegacyInterruptTime {
+		return nanotimel()
+	}
 	gp := getg()
 	if gp == nil || gp.m == nil || gp.m.profilehz == 0 || gp.m.libcallsp != 0 {
 		return nanotime2()
@@ -261,6 +264,10 @@ func nanotime1() int64 {
 
 func nanotime2() int64
 
+var useLegacyInterruptTime = false
+
+func nanotimel() int64
+
 //go:linknamestd cpu_isProcessorFeaturePresent internal/cpu.isProcessorFeaturePresent
 func cpu_isProcessorFeaturePresent(processorFeature uint32) bool {
 	ret := stdcall(_IsProcessorFeaturePresent, uintptr(processorFeature))
@@ -272,12 +279,11 @@ func loadOptionalSyscalls() {
 	// but it is not exported from kernel32.dll on every architecture.
 	// Resolve it before schedinit calls nanotime to initialize the clocks.
 	realtime := windowsLoadSystemLib(realtimeapisetdll[:])
-	if realtime == 0 {
-		throw("could not load realtime API set")
+	if realtime != 0 {
+		_QueryInterruptTimePrecise = windowsFindfunc(realtime, []byte("QueryInterruptTimePrecise\000"))
 	}
-	_QueryInterruptTimePrecise = windowsFindfunc(realtime, []byte("QueryInterruptTimePrecise\000"))
 	if _QueryInterruptTimePrecise == nil {
-		throw("QueryInterruptTimePrecise not found")
+		useLegacyInterruptTime = true
 	}
 
 	bcryptPrimitives := windowsLoadSystemLib(bcryptprimitivesdll[:])
