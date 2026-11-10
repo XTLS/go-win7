@@ -10,7 +10,7 @@ This is a repository for Go SDK compatibility. However, this is not, and will ne
 
 Some strange and seemingly inexplicable bugs may appear on older operating systems at any time, of course, most of the time they will not. If one does appear, however, please remember that some of these issues are things that should really be fixed by Go itself.
 
-We will honor our compatibility commitments, subject to applicable conditions. We will do our best to keep basic functionality working on older operating systems, including building the SDK and compiling a Go binary. However, **CGO compatibility is not guaranteed**, and **the race detector is known not to work and will not be fixed**.
+We will honor our compatibility commitments, subject to applicable conditions. We will do our best to keep basic functionality working on older operating systems, including building the SDK and compiling a Go binary. However, **CGO compatibility and FIPS 140 mode are not guaranteed**, and **the race detector is known not to work and will not be fixed**.
 
 We provide compatibility support so that existing systems can keep running a newer Go than Go expected. **This is not an encouragement to continue using an unsupported operating system.**
 
