@@ -41,7 +41,7 @@ Since Go 1.27, the baselines of the compatibility are:
 - Windows 8.1 with April 2014 Update (KB2919355)
 - Windows Server 2012 R2 with April 2014 Update (KB2919355)
 
-The decision is based on both security concern and API modernization. Even though the updates mentioned are the baselines, you still need to install additional updates to keep better functionality and security for the OS, especially preventing known attacks in wild for all OSes. Installing several key updates may also work, but compatibility may drift when upstream making changes.
+The decision is based on both security concern and API modernization, and the baseline has been backed by real-world evidence in 2023. Even though the updates mentioned are the baselines, you still need to install additional updates to keep better functionality and security for the OS, especially preventing known attacks in wild for all OSes. Installing several key updates may also work, but compatibility may drift when upstream making changes.
 
 ### Legacy-system notes
 
@@ -53,6 +53,11 @@ Updates below are recommended besides the baseline requirements:
 
 - KB2999226 (Windows Server 2012 R2, Windows Server 2012, Windows Server 2008 R2 SP1, Windows 8.1, Windows 7): Update for Universal C Runtime in Windows.
 - KB3140245 (Windows Server 2012, Windows Server 2008 R2 SP1, and Windows 7 SP1): Providing support for TLS 1.1 and 1.2 in system SChannel, which is used by many system components. You may need to use Easy fix from Microsoft to enable TLS 1.2 support correctly which update several registry keys.
+- MS17-010:
+  - KB4012212 (Security update only)/ KB4012215 (Monthly rollup): Windows Server 2008 R2 SP1, Windows 7 SP1
+  - KB4012214 (Security update only)/ KB4012217 (Monthly rollup): Windows Server 2012
+  - KB4012213 (Security update only)/ KB4012216 (Monthly rollup): Windows Server 2012 R2, Windows 8.1
+    - KB4012213 requires KB3021910 and KB2919355 installed before
 - .NET Framework updates: This enable correct TLS 1.2 support in .NET Framework applications correctly in older OSes.
   - .NET Framework 4.5.1 or 4.5.2 (Windows Server 2012 R2, Windows Server 2012, Windows 8.1): Install at least latest updates for 4.5.1 or 4.5.2 as a baseline.
   - .NET Framework 4.6.2 (Windows Server 2008 R2 SP1, Windows 7 SP1): TLS 1.2 is correctly supported in .NET Framework since 4.6.2.
